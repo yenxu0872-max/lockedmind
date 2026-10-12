@@ -1,6 +1,6 @@
 # Publishes the two websites to GitHub Pages on every push that changes them:
-#   https://<user>.github.io/oriel/       Lockedmind Models — every model, explained
-#   https://<user>.github.io/oriel/app/   Lockedmind — private AI that runs on your device
+#   https://<user>.github.io/lockedmind/       Lockedmind Models — every model, explained
+#   https://<user>.github.io/lockedmind/app/   Lockedmind — private AI that runs on your device
 # Only web/ goes up, without its build tools and caches (_build, _lab).
 name: Websites
 

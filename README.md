@@ -3,8 +3,8 @@
 A local mind, running on your own machine.
 
 > Lockedmind was called **oriel.ai** (and its websites **Oriel**) until October 2026. Only the name changed.
-> The terminal command is still `oriel` (`lockedmind` works too), and the data folder, the internal ids and the
-> web address keep "oriel", so nothing saved under the old name is lost.
+> The terminal command is still `oriel` (`lockedmind` works too), and the data folder and the internal ids keep
+> "oriel", so nothing saved under the old name is lost.
 
 A polished Mac app over a model sitting on your own disk. No account, no API key, no cloud.
 Turn off your Wi-Fi and it keeps working — only the optional web **Search** ever goes online.
@@ -202,8 +202,8 @@ still references any remote resource. After changing the server, `oriel restart`
 
 Live on GitHub Pages — published by `.github/workflows/pages.yml` on every push that changes `web/`:
 
-- **Lockedmind Models** — <https://yenxu0872-max.github.io/oriel/>
-- **Lockedmind**, the app — <https://yenxu0872-max.github.io/oriel/app/>
+- **Lockedmind Models** — <https://yenxu0872-max.github.io/lockedmind/>
+- **Lockedmind**, the app — <https://yenxu0872-max.github.io/lockedmind/app/>
 
 Two products, one static site:
 

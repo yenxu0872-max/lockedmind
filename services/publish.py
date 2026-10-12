@@ -26,7 +26,7 @@ WEB = HERE / "web"
 OUT = HERE / "build" / "site"
 CONFIG = HERE / "publish.json"
 WRANGLER = ["npx", "--yes", "wrangler@4"]
-GH_APP = "https://yenxu0872-max.github.io/oriel/app/"   # the app page's own address in the sources (GitHub Pages)
+GH_APP = "https://yenxu0872-max.github.io/lockedmind/app/"   # the app page's own address in the sources (GitHub Pages)
 HEADERS = """/*
   Referrer-Policy: no-referrer
   X-Content-Type-Options: nosniff
