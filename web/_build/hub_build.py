@@ -10,7 +10,7 @@ What goes in:
     speech, voices, embeddings — minus compressed copies (they become download
     options of their original), add-ons (LoRAs) and adults-only models
   - every model in Ollama's library and LM Studio's catalog, whatever its age
-  - every model Oriel runs in the browser (web/models.json, hand-written words)
+  - every model Lockedmind runs in the browser (web/models.json, hand-written words)
 The same model is usually in several places under different names
 (`qwen3.5:9b`, `Qwen/Qwen3.5-9B`, `qwen/qwen3.5-9b`): they're matched by name
 and size, so each model appears once with all the ways to get it.
@@ -418,7 +418,7 @@ def main():
         if repo in out:
             out[repo]["ollama"] = {"name": name, "tag": tag, "gb": gb, "pulls": 0, "cloud": False, "mac": True}
 
-    # ---------------------------------------------------------------- Oriel's own (hand-written words, tested)
+    # ---------------------------------------------------------------- Lockedmind's own (hand-written words, tested)
     for m in curated["models"]:
         repo = m["hf"]["repo"]
         hit = hf.get(repo) or match(repo)
@@ -443,7 +443,7 @@ def main():
 
     # ---------------------------------------------------------------- one entry per model
     # An Ollama or LM Studio name can end up both on its own and attached to a
-    # Hugging Face model (e.g. through Oriel's own list): keep the attached one.
+    # Hugging Face model (e.g. through Lockedmind's own list): keep the attached one.
     attached = {(e["ollama"]["name"], e["ollama"]["tag"]) for k, e in out.items() if "ollama" in e and not k.startswith("ollama:")}
     attached_lms = {e["lms"]["id"] for k, e in out.items() if "lms" in e and not k.startswith("lms:")}
     for k in [k for k, e in out.items() if (k.startswith("ollama:") and (e["ollama"]["name"], e["ollama"]["tag"]) in attached)
@@ -526,7 +526,7 @@ def main():
     print("kinds:", dict(sorted(kinds.items(), key=lambda x: -x[1])))
     print("with a file to download:", sum(1 for e in models if e.get("gguf", {}).get("file")),
           "| in Ollama:", sum(1 for e in models if "ollama" in e), "| in LM Studio:", sum(1 for e in models if "lms" in e),
-          "| in Oriel:", sum(1 for e in models if "oriel" in e))
+          "| in Lockedmind:", sum(1 for e in models if "oriel" in e))
 
 
 if __name__ == "__main__":

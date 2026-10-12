@@ -1,6 +1,6 @@
-// oriel.ai — the Mac app.
+// Lockedmind — the Mac app (called oriel.ai until October 2026; internal names keep "oriel").
 //
-// A native window around the oriel.ai interface, which the oriel server on
+// A native window around the Lockedmind interface, which the oriel server on
 // this Mac serves at http://127.0.0.1:7171. The app:
 //   - starts that server if it isn't running (the login item normally has it
 //     up already) and shows a native "Starting…" screen meanwhile
@@ -70,7 +70,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, WKNa
         window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1180, height: 780),
                           styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
                           backing: .buffered, defer: false)
-        window.title = "oriel.ai"
+        window.title = "Lockedmind"
         window.titleVisibility = .hidden
         window.titlebarAppearsTransparent = true
         window.minSize = NSSize(width: 720, height: 480)
@@ -113,7 +113,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, WKNa
         cover.autoresizingMask = [.width, .height]
         let icon = NSImageView(image: NSApp.applicationIconImage)
         icon.imageScaling = .scaleProportionallyUpOrDown
-        status = NSTextField(labelWithString: "Starting oriel.ai…")
+        status = NSTextField(labelWithString: "Starting Lockedmind…")
         status.font = .systemFont(ofSize: 17, weight: .semibold)
         detail = NSTextField(wrappingLabelWithString: "")
         detail.font = .systemFont(ofSize: 13)
@@ -158,7 +158,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, WKNa
     func connect() {
         guard !connecting else { return }
         connecting = true
-        showCover("Starting oriel.ai…")
+        showCover("Starting Lockedmind…")
         Task {
             var up = await serverUp()
             if !up {
@@ -174,7 +174,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, WKNa
             if up {
                 web.load(URLRequest(url: home))
             } else {
-                showCover("oriel.ai couldn't start",
+                showCover("Lockedmind couldn't start",
                           "Its server didn't come up. In Terminal, `oriel logs` shows why, and `oriel restart` tries again.",
                           failed: true)
             }
@@ -342,16 +342,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, WKNa
             i.keyEquivalentModifierMask = mods
             return i
         }
-        _ = menu("oriel.ai", [
-            item("About oriel.ai", #selector(NSApplication.orderFrontStandardAboutPanel(_:))),
+        _ = menu("Lockedmind", [
+            item("About Lockedmind", #selector(NSApplication.orderFrontStandardAboutPanel(_:))),
             .separator(),
             item("Settings…", #selector(openSettings(_:)), ","),
             .separator(),
-            item("Hide oriel.ai", #selector(NSApplication.hide(_:)), "h"),
+            item("Hide Lockedmind", #selector(NSApplication.hide(_:)), "h"),
             item("Hide Others", #selector(NSApplication.hideOtherApplications(_:)), "h", [.command, .option]),
             item("Show All", #selector(NSApplication.unhideAllApplications(_:))),
             .separator(),
-            item("Quit oriel.ai", #selector(NSApplication.terminate(_:)), "q"),
+            item("Quit Lockedmind", #selector(NSApplication.terminate(_:)), "q"),
         ])
         _ = menu("File", [
             item("New Chat", #selector(newChat(_:)), "n"),

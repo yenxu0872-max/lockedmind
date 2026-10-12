@@ -1,4 +1,4 @@
-// Draws the oriel.ai app icon — the design's orb on a dark macOS-style
+// Draws the Lockedmind app icon — the design's orb on a dark macOS-style
 // rounded square — as a 1024 px PNG. `oriel app` turns it into AppIcon.icns.
 //
 //   swift makeicon.swift out.png

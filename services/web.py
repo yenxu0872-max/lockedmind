@@ -28,7 +28,7 @@ import urllib.request
 from html.parser import HTMLParser
 
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 "
-      "(KHTML, like Gecko) Version/18.0 Safari/605.1.15 oriel.ai/1.0")
+      "(KHTML, like Gecko) Version/18.0 Safari/605.1.15 Lockedmind/1.0")
 SEARCH_URLS = ("https://html.duckduckgo.com/html/?q={q}", "https://lite.duckduckgo.com/lite/?q={q}")
 MAX_PAGE_BYTES = 1_500_000
 PAGE_CHARS = 3000

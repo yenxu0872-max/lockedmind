@@ -1,8 +1,8 @@
-/* Oriel's page: scrolling tells the story. Every [data-scene] knows how far
+/* Lockedmind's page: scrolling tells the story. Every [data-scene] knows how far
    through it you are (0 to 1) — eased, so things glide after the scroll
    rather than jerk with it — and moves to match: the daylight dims, your
    messages pass through their servers, the facts stack up, the leaks roll
-   by, a light grows back, and the laptop shows what Oriel does. [data-reveal]
+   by, a light grows back, and the laptop shows what Lockedmind does. [data-reveal]
    blocks rise in as they come up the screen. With "reduce motion" on, the
    page stays still and only the header follows. */
 (() => {

@@ -1,6 +1,10 @@
-# oriel.ai
+# Lockedmind
 
 A local mind, running on your own machine.
+
+> Lockedmind was called **oriel.ai** (and its websites **Oriel**) until October 2026. Only the name changed.
+> The terminal command is still `oriel` (`lockedmind` works too), and the data folder, the internal ids and the
+> web address keep "oriel", so nothing saved under the old name is lost.
 
 A polished Mac app over a model sitting on your own disk. No account, no API key, no cloud.
 Turn off your Wi-Fi and it keeps working — only the optional web **Search** ever goes online.
@@ -15,8 +19,8 @@ Apple Silicon. A [colibri](https://github.com/JustVugg/colibri) backend is still
 oriel install
 ```
 
-Once. It builds the Mac app into `~/Applications/oriel.ai.app` (Spotlight finds it as
-**oriel.ai**), sets the oriel server to start when you log in, and opens the app. From then on
+Once. It builds the Mac app into `~/Applications/Lockedmind.app` (Spotlight finds it as
+**Lockedmind**), sets the oriel server to start when you log in, and opens the app. From then on
 open it like any other app, or type `oriel`.
 
 The server and engine idle at under 30 MB until a window opens. The model (about 6 GB of
@@ -59,18 +63,18 @@ a different model for one session.
 
 ## What's in it
 
-The interface is the **Oriel v3** design, rebuilt to run against a local model.
+The interface is the v3 design (drawn under the app's first name, Oriel), rebuilt to run against a local model.
 
 - **Chat** that streams token by token, with Copy, Retry, Edit and 👍/👎 on each reply.
 - **Model picker** with three presets:
 
   | Preset | Runs on | Answers |
   |---|---|---|
-  | **Oriel 2 Flash** | Gemma 4 4B | Fastest, short and direct — about 33 words, 3 s |
-  | **Oriel 2** (default) | Gemma 4 4B | Detailed and longer — about 226 words, 13 s |
-  | **Oriel 2 Deep** | Gemma 4 12B | Detailed, and always reasons first — slowest |
+  | **Lockedmind 2 Flash** | Gemma 4 4B | Fastest, short and direct — about 33 words, 3 s |
+  | **Lockedmind 2** (default) | Gemma 4 4B | Detailed and longer — about 226 words, 13 s |
+  | **Lockedmind 2 Deep** | Gemma 4 12B | Detailed, and always reasons first — slowest |
 
-  Flash and Oriel 2 share one model, so switching is instant; only Deep loads other weights.
+  Flash and Lockedmind 2 share one model, so switching is instant; only Deep loads other weights.
   Concise / Balanced / Detailed in Settings makes each a notch shorter or longer.
 - **Think** — off by default. On, the model reasons first ("Thought for 19s", expandable).
   Slower, but it is what gets maths and logic puzzles right.
@@ -114,7 +118,7 @@ an M4 — a minute for a 15,000-token PDF); the reply says "Reading your files" 
 | Chats, settings, attachments | `~/Library/Application Support/oriel.ai/` |
 | Backups | same folder: `state.previous.json`, plus one snapshot a day for 14 days |
 | Logs | `~/Library/Logs/oriel.ai/` — `server.log`, `engine.log` (`oriel logs` shows them) |
-| The app | `~/Applications/oriel.ai.app` |
+| The app | `~/Applications/Lockedmind.app` |
 | Login item | `~/Library/LaunchAgents/ai.oriel.server.plist` |
 
 Chats are kept out of the code folder, so this git repository never contains a conversation.
@@ -142,7 +146,7 @@ The previous amber interface is kept as `ui/index.classic.html`.
 ## How it's wired
 
 ```
-oriel.ai.app ──► oriel server (:7171) ──► ollama (:11434) ──► gemma4 ──► weights on disk
+Lockedmind.app ──► oriel server (:7171) ──► ollama (:11434) ──► gemma4 ──► weights on disk
  (WKWebView)      page + API proxy          Metal / GPU
                   chats, files, search,
                   documents, tokens
@@ -198,16 +202,16 @@ still references any remote resource. After changing the server, `oriel restart`
 
 Live on GitHub Pages — published by `.github/workflows/pages.yml` on every push that changes `web/`:
 
-- **Oriel Models** — <https://yenxu0872-max.github.io/oriel/>
-- **Oriel**, the app — <https://yenxu0872-max.github.io/oriel/app/>
+- **Lockedmind Models** — <https://yenxu0872-max.github.io/oriel/>
+- **Lockedmind**, the app — <https://yenxu0872-max.github.io/oriel/app/>
 
 Two products, one static site:
 
-**Oriel Models** — the model finder, for people starting out: every AI model worth trying from the
+**Lockedmind Models** — the model finder, for people starting out: every AI model worth trying from the
 past year (anything on Hugging Face that people use) plus every model in Ollama's library, LM Studio's
-catalog and Oriel's own list, matched across apps so each appears once, in plain words. Every model
+catalog and Lockedmind's own list, matched across apps so each appears once, in plain words. Every model
 has **Download** first — the file itself, LM Studio's one-click link, the Ollama command — and
-**Open in Oriel** where it runs in the browser; the rest link to where they can be had.
+**Open in Lockedmind** where it runs in the browser; the rest link to where they can be had.
 
 | File | What it is |
 |---|---|
@@ -221,7 +225,7 @@ python3 web/_build/hub_build.py                            # merge -> web/catalo
 python3 web/_build/hub_fetch.py logos sizes                # makers' logos, exact file sizes
 ```
 
-**Oriel** (`web/app/`) — the private AI app, for everyone: it chats, writes code and **makes
+**Lockedmind** (`web/app/`) — the private AI app, for everyone: it chats, writes code and **makes
 pictures**, all on the visitor's own device — free, no account, nothing sent anywhere. It installs
 like an app and works offline once set up.
 
@@ -260,7 +264,7 @@ Keep both on one domain so models downloaded through the finder are the app's to
 **gemma4:e4b-it-qat** — Gemma 4's efficient 4B-effective variant, quantization-aware trained: 6.1 GB
 on disk and about 6 GB of memory while loaded (Ollama reports 3.2 GB, but that counts only the
 part on the GPU). Chosen by measurement over the larger `gemma4:12b`, which is also
-installed (and used by Oriel 2 Deep):
+installed (and used by Lockedmind 2 Deep):
 
 | Model | Median speed | Long answer (120 words) | Accuracy on test set |
 |---|---|---|---|

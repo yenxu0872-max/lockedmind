@@ -1,4 +1,4 @@
-/* Oriel's picture maker, in its own worker so the page stays smooth.
+/* Lockedmind's picture maker, in its own worker so the page stays smooth.
 
    Z-Image Turbo (Alibaba Tongyi Lab, Apache 2.0) running on this computer's
    graphics chip through ONNX Runtime Web — ported from Microsoft's WebNN

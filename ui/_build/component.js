@@ -1,5 +1,5 @@
 
-/* oriel.ai — interface logic.
+/* Lockedmind — interface logic. (The app was oriel.ai until October 2026.)
  *
  * Built on the "Oriel v3" design. The visual design and interaction model are
  * the design's own; this file backs them with a real local model and server:
@@ -7,7 +7,7 @@
  *   - replies STREAM from ollama as they are generated
  *   - chats, settings and attachments are saved to disk by the oriel server
  *     (~/Library/Application Support/oriel.ai), not in the browser
- *   - presets: Flash (brief) and Oriel 2 (detailed) share the 4B; Deep is the 12B
+ *   - presets: Flash (brief) and Lockedmind 2 (detailed) share the 4B; Deep is the 12B
  *   - Search runs a real web search and cites the pages it actually read
  *   - attachments are really read: images by the vision model, PDFs / Word /
  *     Excel / PowerPoint as text (scans via on-device OCR), code and text inline
@@ -27,21 +27,22 @@ const WEB = window.ORIEL_WEB || null;
 
 /* ------------------------------------------------------------------ models */
 
-/* Presets, not models: Flash and the standard Oriel 2 run on the same weights
+/* Presets, not models: Flash and the standard Lockedmind 2 run on the same weights
    and differ only in how much they write, so switching between them costs
    nothing. Measured on "Why does the moon cause tides?" with the detailed
    instructions: the 4B wrote 292 words in 18.7 s; the 12B wrote 329 more
    precise words in 41.4 s. The standard preset uses the 4B for speed; Deep is
    there when the extra precision is worth the wait. */
 const PRESETS = [
-  { id: 'flash',  name: 'Oriel 2 Flash', desc: 'Fastest, short answers · Gemma 4 4B',   model: 'gemma4:e4b-it-qat', detail: 'brief',    deep: false },
-  { id: 'normal', name: 'Oriel 2',       desc: 'Detailed, longer answers · Gemma 4 4B', model: 'gemma4:e4b-it-qat', detail: 'detailed', deep: false },
-  { id: 'deep',   name: 'Oriel 2 Deep',  desc: 'Reasons first, slowest · Gemma 4 12B',  model: 'gemma4:12b',        detail: 'detailed', deep: true },
+  { id: 'flash',  name: 'Lockedmind 2 Flash', desc: 'Fastest, short answers · Gemma 4 4B',   model: 'gemma4:e4b-it-qat', detail: 'brief',    deep: false },
+  { id: 'normal', name: 'Lockedmind 2',       desc: 'Detailed, longer answers · Gemma 4 4B', model: 'gemma4:e4b-it-qat', detail: 'detailed', deep: false },
+  { id: 'deep',   name: 'Lockedmind 2 Deep',  desc: 'Reasons first, slowest · Gemma 4 12B',  model: 'gemma4:12b',        detail: 'detailed', deep: true },
 ];
 const DEFAULT_PRESET = 'normal';
 const FALLBACK_MODEL = PRESETS.find(p => p.id === DEFAULT_PRESET);
 
 const STYLES = ['Concise', 'Balanced', 'Detailed'];
+const renamed = t => String(t).replace(/\bOrie[l]\b/g, 'Lockedmind');   // labels saved under the app's old name
 /* Length is set by the preset (brief vs detailed), and the Concise / Balanced /
    Detailed setting shifts it within that. Every line is a ceiling or a scale,
    never a quota: phrased as a target, the model padded short answers with
@@ -630,7 +631,7 @@ class Component extends DCLogic {
     // before the server stored them. Nothing is saved until this has loaded,
     // so a slow start can never overwrite the history with an empty list.
     if (server === null) {
-      this.showToast("Can't reach the oriel server — changes won't be saved");
+      this.showToast("Can't reach the Lockedmind server — changes won't be saved");
     } else {
       let chats = server.chats || [], settings = server.settings || {};
       let moved = 0, legacy = null;
@@ -730,11 +731,11 @@ class Component extends DCLogic {
       if (wanted || prompt) history.replaceState(null, '', location.pathname);
       if (prompt) this.inputRef.current?.focus();
       await this.scanDownloads();
-      // Download straight away only when asked to ("Run in Oriel" shows the
+      // Download straight away only when asked to ("Run in Lockedmind" shows the
       // size first) or when the model is already here; never as a surprise.
       const m = this.model();
       if (wanted || this.state.have[m.model]) this.ensureEngine().catch(() => {});
-      else if (m.model) this.setState({ load: { text: `Oriel's brain, ${m.name}, downloads once (${gbText(m.download_gb)}) when you send your first message — then everything runs on this device, and nothing you type is sent anywhere.`, idle: true } });
+      else if (m.model) this.setState({ load: { text: `Lockedmind's brain, ${m.name}, downloads once (${gbText(m.download_gb)}) when you send your first message — then everything runs on this device, and nothing you type is sent anywhere.`, idle: true } });
     });
     window.oriel = {
       newChat: () => !this.state.busy && this.setState({ activeId: null, input: '', canvas: null }, () => this.inputRef.current?.focus()),
@@ -856,7 +857,7 @@ class Component extends DCLogic {
         this.lastSaved = key;
         this.saveFailed = false;
       } catch (e) {
-        if (!this.saveFailed) this.showToast("Couldn't save — this browser's storage for Oriel is full. Delete some old chats.");
+        if (!this.saveFailed) this.showToast("Couldn't save — this browser's storage for Lockedmind is full. Delete some old chats.");
         this.saveFailed = true;
       }
       return;
@@ -874,7 +875,7 @@ class Component extends DCLogic {
       this.lastSaved = key;
       this.saveFailed = false;
     } catch (e) {
-      if (!this.saveFailed) this.showToast("Couldn't save — is oriel still running?");
+      if (!this.saveFailed) this.showToast("Couldn't save — is Lockedmind still running?");
       this.saveFailed = true;
     }
   }
@@ -969,9 +970,9 @@ class Component extends DCLogic {
     const { name, style, instructions, memory, followups } = this.state;
     // The voice: the structure and helpfulness people like in ChatGPT, with the
     // warmth, directness and honesty people like in Claude — described, never named,
-    // so Oriel never claims to be either.
+    // so Lockedmind never claims to be either.
     const L = [
-      'You are Oriel, a warm, sharp and genuinely helpful AI assistant.',
+      'You are Lockedmind, a warm, sharp and genuinely helpful AI assistant.',
       'How you answer:',
       '- Start with the answer itself. No preamble, no restating the question, no "Great question!".',
       '- Match the length to the question: a sentence or two for simple things, clear and organised detail for bigger ones.',
@@ -1016,7 +1017,7 @@ class Component extends DCLogic {
     let text = m.text || '';
     if (text.length > textChars) {
       const head = Math.floor(textChars * 0.7), tail = Math.floor(textChars * 0.3);
-      text = text.slice(0, head) + "\n[… the middle of this message didn't fit in Oriel's memory …]\n" + text.slice(text.length - tail);
+      text = text.slice(0, head) + "\n[… the middle of this message didn't fit in Lockedmind's memory …]\n" + text.slice(text.length - tail);
       cut.push('your message');
     }
     const docs = (m.files || []).filter(f => f.isDoc && f.text);
@@ -1025,8 +1026,8 @@ class Component extends DCLogic {
       let body = f.text;
       const keep = total > docChars ? Math.floor(docChars * f.text.length / total) : body.length;
       if (keep < body.length) {
-        body = keep > 0 ? body.slice(0, keep) + `\n[… the rest of ${f.name} didn't fit in Oriel's memory]`
-                        : `[${f.name} didn't fit in Oriel's memory]`;
+        body = keep > 0 ? body.slice(0, keep) + `\n[… the rest of ${f.name} didn't fit in Lockedmind's memory]`
+                        : `[${f.name} didn't fit in Lockedmind's memory]`;
         cut.push(f.name);
       }
       text += `\n\n[Attached file: ${f.name}]\n${body}\n[End of ${f.name}]`;
@@ -1140,7 +1141,7 @@ class Component extends DCLogic {
 
   // The picture maker downloads only when asked — never a surprise 6.6 GB.
   async downloadPainter(chatId, idx) {
-    if (this.pictureBusy) { this.showToast('Oriel is busy with another picture — one at a time'); return; }
+    if (this.pictureBusy) { this.showToast('Lockedmind is busy with another picture — one at a time'); return; }
     this.pictureBusy = true;
     this.patchPic(chatId, idx, { state: 'downloading' });
     painter.on.progress = d => this.patchPic(chatId, idx, { state: 'downloading', have: d.have, total: d.total });
@@ -1157,7 +1158,7 @@ class Component extends DCLogic {
   }
 
   async paintPicture(chatId, idx) {
-    if (this.pictureBusy) { this.showToast('Oriel is busy with another picture — one at a time'); return; }
+    if (this.pictureBusy) { this.showToast('Lockedmind is busy with another picture — one at a time'); return; }
     const pic = this.state.chats.find(c => c.id === chatId)?.messages[idx]?.picture;
     if (!pic) return;
     this.pictureBusy = true;
@@ -1244,7 +1245,7 @@ class Component extends DCLogic {
 
   async deletePainter() {
     if (this.state.deleting) return;
-    if (this.pictureBusy) { this.showToast('Oriel is making a picture — try again when it has finished'); return; }
+    if (this.pictureBusy) { this.showToast('Lockedmind is making a picture — try again when it has finished'); return; }
     if (!window.confirm(`Delete the picture maker from this device? It frees ${gbText((this.state.painterStore?.have || 0) / 1e9)}, and downloads again the next time you ask for a picture. Pictures you've made stay.`)) return;
     this.setState({ deleting: 'painter' });
     try { await painter.call('delete'); this.showToast('Deleted the picture maker'); }
@@ -1330,7 +1331,7 @@ class Component extends DCLogic {
     const { messages, dropped, cut, newest } = await this.buildMessages(history, tool, web && !!history[history.length - 1]?.webContext, maxTokens);
     if (this.token !== started) return;
     if (dropped !== (this.active().forgot || 0)) this.patchChat(chatId, c => ({ ...c, forgot: dropped }));
-    if (cut.length) this.showToast(`Only part of ${cut.join(' and ')} fit in Oriel's memory`, 6000);
+    if (cut.length) this.showToast(`Only part of ${cut.join(' and ')} fit in Lockedmind's memory`, 6000);
     // A long document takes this Mac a while to read (~150 tokens a second)
     // before the first word appears — say so rather than look stuck.
     if (!web && newest > 3000) this.patchLast({ status: files.some(f => f.isDoc) ? 'Reading your files — long ones take a minute or two' : 'Reading your message — long ones take a minute or two' });
@@ -1410,7 +1411,7 @@ class Component extends DCLogic {
       console.warn('oriel: reply failed', e);
       clearTimeout(this.liveT); this.liveT = 0;
       const msg = WEB ? `${model.name} couldn't answer: ${engineError(e)}`
-        : `I couldn't reach the local model (${e && e.message ? e.message : 'no response'}). Check that oriel is still running, then try again.`;
+        : `I couldn't reach the local model (${e && e.message ? e.message : 'no response'}). Check that Lockedmind is still running, then try again.`;
       this.patchLast({ awaiting: false, thinkDone: true, think: false, text: msg, shown: msg, error: true });
       this.setState({ busy: false });
       return;
@@ -1503,7 +1504,7 @@ class Component extends DCLogic {
   }
   chatAsText(c) {
     return c.messages.map(m => {
-      const who = m.role === 'user' ? 'You' : (m.model || 'Oriel');
+      const who = m.role === 'user' ? 'You' : renamed(m.model || 'Lockedmind');
       const piece = m.artifact ? `\n\n[${m.artifact.title}]\n${m.artifact.body}` : '';
       const srcs = (m.sources || []).length ? '\n\nSources:\n' + m.sources.map(x => `[${x.n}] ${x.title} — ${x.url}`).join('\n') : '';
       return `${who}:\n${displayText(m.text || '')}${piece}${srcs}`;
@@ -1520,7 +1521,7 @@ class Component extends DCLogic {
     if (kind === 'canvas') { const m = this.canvasMsg(); if (!m) return; title = m.artifact.title; text = m.artifact.body; }
     else { const c = this.active(); if (!c) return; title = c.title; text = this.chatAsText(c); }
     if (WEB) {
-      const name = `${(title || 'Oriel chat').replace(/[\\/:*?"<>|]/g, '').trim().slice(0, 80) || 'Oriel chat'}.${fmt}`;
+      const name = `${(title || 'Lockedmind chat').replace(/[\\/:*?"<>|]/g, '').trim().slice(0, 80) || 'Lockedmind chat'}.${fmt}`;
       const a = document.createElement('a');
       a.href = URL.createObjectURL(new Blob([fmt === 'md' ? `# ${title}\n\n${text}\n` : text], { type: fmt === 'md' ? 'text/markdown' : 'text/plain' }));
       a.download = name;
@@ -1611,15 +1612,15 @@ class Component extends DCLogic {
         if (m.browse) { location.href = WEB.browse || 'models.html'; return; }
         const prev = this.model().model;
         this.setState({ modelId: m.id, modelMenu: false });
-        // Flash ↔ Oriel 2 share weights: nothing to load.
+        // Flash ↔ Lockedmind 2 share weights: nothing to load.
         this.switchModel(prev, m.model);
       } })),
       share: () => this.copyChat(),
       exportChatOpen: s.exportMenu === 'chat', exportChatOptions: exportOptions('chat'),
       toggleExportChat: () => this.setState({ exportMenu: s.exportMenu === 'chat' ? null : 'chat' }),
       hasMemoryNote: forgot > 0,
-      memoryNote: forgot > 1 ? `The first ${forgot} messages of this chat no longer fit in Oriel's memory, so it can't see them any more.`
-                             : `The first message of this chat no longer fits in Oriel's memory, so it can't see it any more.`,
+      memoryNote: forgot > 1 ? `The first ${forgot} messages of this chat no longer fit in Lockedmind's memory, so it can't see them any more.`
+                             : `The first message of this chat no longer fits in Lockedmind's memory, so it can't see it any more.`,
       greeting: `${hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'}${s.memory && first ? ', ' + first : ''}. Where should we start?`,
       isEmpty: msgs.length === 0, hasMessages: msgs.length > 0,
       suggestions: SUGGESTIONS.map(x => ({ ...x, use: () => this.send(x.text, { web: !!x.web || s.web, think: !!x.think || s.think, tool: x.tool || null }) })),
@@ -1657,7 +1658,7 @@ class Component extends DCLogic {
                            m.think ? (m.thoughtSecs ? `Thought for ${m.thoughtSecs}s` : 'Thought') : ''].filter(Boolean).join(' · ');
         return {
           isUser: m.role === 'user', isAssistant: m.role === 'assistant', text: m.text,
-          modelLabel: m.model || 'Oriel',
+          modelLabel: renamed(m.model || 'Lockedmind'),
           files: m.files || [], hasFiles: !!(m.files && m.files.length),
           hasToolTag: m.role === 'user' && (!!m.tool || !!m.web), toolTag: m.web ? 'Search' : (TOOLS[m.tool] || ''),
           edit: () => { this.setState({ input: m.text }); setTimeout(() => this.inputRef.current?.focus(), 0); },
@@ -1728,7 +1729,7 @@ class Component extends DCLogic {
       input: s.input,
       onInput: e => this.setState({ input: e.target.value }),
       onKey: e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); this.send(); } },
-      placeholder: s.mic === 'rec' ? 'Listening… click the mic again when you\'re done' : s.mic === 'busy' ? 'Transcribing…' : s.tool ? PLACEHOLDERS[s.tool] : 'Ask Oriel anything, or describe a task…',
+      placeholder: s.mic === 'rec' ? 'Listening… click the mic again when you\'re done' : s.mic === 'busy' ? 'Transcribing…' : s.tool ? PLACEHOLDERS[s.tool] : 'Ask Lockedmind anything, or describe a task…',
       toolsOpen: s.toolsOpen, toggleTools: () => this.setState({ toolsOpen: !s.toolsOpen }),
       pickFiles: () => { this.setState({ toolsOpen: false }); this.fileRef.current?.click(); },
       pickCanvas: () => { this.setState({ tool: 'canvas', toolsOpen: false }); this.inputRef.current?.focus(); },
@@ -1782,7 +1783,7 @@ class Component extends DCLogic {
       themes: THEMES.map(x => ({ label: x, active: x === s.theme, inactive: x !== s.theme, pick: () => { this.setState({ theme: x }); applyTheme(x); } })),
       instructions: s.instructions, onInstructions: e => this.setState({ instructions: e.target.value }),
       toggles: [
-        { key: 'memory', label: 'Use my name', desc: 'Let Oriel address you by the name above.' },
+        { key: 'memory', label: 'Use my name', desc: 'Let Lockedmind address you by the name above.' },
         { key: 'followups', label: 'Suggest follow-ups', desc: 'Show suggested next questions under replies.' },
         { key: 'autoExpand', label: 'Show thinking by default', desc: 'Keep reasoning and search steps expanded after replies finish.' },
       ].map(t => ({ ...t, on: !!s[t.key], off: !s[t.key], flip: () => this.setState({ [t.key]: !s[t.key] }) })),

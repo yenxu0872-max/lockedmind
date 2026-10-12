@@ -2,7 +2,7 @@
 """Assemble ui/index.html from the Oriel v3 design.
 
     python3 ui/_build/build.py          the Mac app's page (ui/index.html)
-    python3 ui/_build/build.py --web    the Oriel web app's chat (web/app/chat.html),
+    python3 ui/_build/build.py --web    the Lockedmind web app's chat (web/app/chat.html),
                                         where models run in the browser itself
 
 Steps, in order:
@@ -27,7 +27,7 @@ HERE = Path(__file__).resolve().parent
 UI = HERE.parent
 SRC = UI / "_design" / "Oriel v3.dc.html"
 WEB = "--web" in sys.argv
-SITE = UI.parent / "web" / "app"           # the Oriel app: its own folder, deployable on its own
+SITE = UI.parent / "web" / "app"           # the Lockedmind web app: its own folder, deployable on its own
 OUT = SITE / "chat.html" if WEB else UI / "index.html"
 
 # The web page's model download, shown in the empty chat and above the messages.
@@ -40,7 +40,7 @@ BTN = ("border:0;border-radius:10px;padding:8px 14px;font-family:inherit;font-si
        "display:inline-flex;align-items:center;gap:7px")
 PICTURE = f"""<sc-if value="{{{{ m.hasPicture }}}}"><div style="width:100%;max-width:440px;display:flex;flex-direction:column;gap:10px">
 <sc-if value="{{{{ m.picOffer }}}}"><div style="border:1px solid #e8e8ec;border-radius:16px;padding:14px 16px;background:#fff;font-size:14.5px;line-height:1.5;color:#1d1d1b">
-<div style="font-weight:500;margin-bottom:3px">Oriel can paint this, right on your computer</div>
+<div style="font-weight:500;margin-bottom:3px">Lockedmind can paint this, right on your computer</div>
 <div style="color:#6b6b66;font-size:13.5px">It needs its picture maker first: a one-time download of {{{{ m.picSize }}}}. It stays on this device, and what you ask for is never sent anywhere.</div>
 <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
 <button onClick="{{{{ m.picDownload }}}}" style="{BTN};background:#1d1d1b;color:#fff" style-hover="opacity:.9">Download and paint</button>
@@ -65,7 +65,7 @@ PICTURE = f"""<sc-if value="{{{{ m.hasPicture }}}}"><div style="width:100%;max-w
 # Settings, in the web app: what's downloaded on this device, and a way to delete it.
 STORAGE = f"""<sc-if value="{{{{ hasStorage }}}}"><div style="display:flex;flex-direction:column;gap:10px;border-top:1px solid #f0f0f3;padding-top:18px">
 <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:500">Stored on this device</span>
-<span style="font-size:13px;color:#6b6b66;text-wrap:pretty">Oriel's AI, downloaded once. Delete what you don't use to free up space — it downloads again if you need it. Nothing here ever leaves this device.</span></div>
+<span style="font-size:13px;color:#6b6b66;text-wrap:pretty">Lockedmind's AI, downloaded once. Delete what you don't use to free up space — it downloads again if you need it. Nothing here ever leaves this device.</span></div>
 <sc-for list="{{{{ storage }}}}" as="it"><div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid #eeeef1;border-radius:12px">
 <div style="flex:1;display:flex;flex-direction:column;gap:1px;min-width:0"><span style="font-size:14px">{{{{ it.label }}}}</span><span style="font-size:12.5px;color:#8a8a84">{{{{ it.detail }}}}</span></div>
 <button onClick="{{{{ it.remove }}}}" style="{BTN};background:#f4f4f7;color:#1d1d1b;padding:6px 12px" style-hover="background:#ececf1">{{{{ it.action }}}}</button></div></sc-for>
@@ -425,7 +425,7 @@ tpl = must_replace(
 
 tpl, theme_css, _ = colour_pass(tpl)
 if WEB:
-    shutil.copy2(SITE.parent / "models.json", SITE / "models.json")      # the models Oriel runs (web/_build/catalog.py)
+    shutil.copy2(SITE.parent / "models.json", SITE / "models.json")      # the models Lockedmind runs (web/_build/catalog.py)
     WEB_CONFIG = json.dumps({"webllm": json.loads((SITE / "models.json").read_text())["engine"]["webllm"],
                              "models": "models.json", "worker": "engine-worker.js", "browse": "../models.html"})
 
@@ -447,7 +447,7 @@ app_css = ("<style>html[data-app=mac]{--titlebar:28px}"
 tpl = must_replace(
     tpl, '<meta name="viewport" content="width=device-width, initial-scale=1">',
     '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
-    f'<title>{"Oriel — private AI in your browser" if WEB else "oriel.ai"}</title>\n'
+    f'<title>{"Lockedmind — private AI in your browser" if WEB else "Lockedmind"}</title>\n'
     f'<link rel="icon" href="{icon}">\n'
     f'{early_theme}\n{theme_css}\n{"" if WEB else app_css}\n'
     + (f'<script>window.ORIEL_WEB = {WEB_CONFIG};</script>\n' + '<link rel="manifest" href="manifest.webmanifest">\n<meta name="theme-color" content="#17171a">\n<link rel="apple-touch-icon" href="img/apple-touch-icon.png">\n<script>if(\'serviceWorker\' in navigator)addEventListener(\'load\',()=>navigator.serviceWorker.register(\'sw.js\').catch(()=>{}));</script>\n' if WEB else '') +
@@ -468,6 +468,10 @@ for gone in ("pickResearch", "Free plan") + (() if WEB else ("pickImage",)):
         sys.exit(f"  ✗ template still references {gone}")
 left = COLOR_RE.findall(re.sub(r"<script.*?</script>", "", re.sub(r"<style>.*?</style>", "", out.split("data-dc-script")[0], flags=re.S), flags=re.S))
 left = [c for c in left if not re.search(r'(stroke|fill)="' + re.escape(c), out)]
+# The app is called Lockedmind (it was Oriel until October 2026). The design file this page is assembled from still
+# carries the old name in its text, so it is changed here, in the finished page: the word as people read it, never an
+# identifier or a storage key (those stay "oriel-…", so chats and settings saved under the old name are still found).
+out = re.sub(r"\bOriel\b", "Lockedmind", out)
 OUT.write_text(out)
 if WEB:
     # the runtime files the page loads, next to it

@@ -1,10 +1,10 @@
-/* Oriel Models — the model finder: the home page and the Browse page. */
+/* Lockedmind Models — the model finder: the home page and the Browse page. */
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const gb = n => n >= 100 ? Math.round(n) + ' GB' : n >= 10 ? Math.round(n) + ' GB' : n >= 1 ? n.toFixed(1) + ' GB' : Math.max(1, Math.round(n * 1000)) + ' MB';
 const month = ym => { if (!ym) return ''; const [y, m] = ym.split('-').map(Number); return new Date(y, m - 1, 1).toLocaleString('en-GB', { month: 'short', year: 'numeric' }); };
 const short = n => n >= 1e6 ? (n / 1e6).toFixed(n >= 1e7 ? 0 : 1) + 'M' : n >= 1e3 ? (n / 1e3).toFixed(n >= 1e4 ? 0 : 1) + 'K' : String(Math.round(n));
-const APP = 'app/';               // the Oriel app: chat, code and images in your browser
+const APP = 'app/';               // the Lockedmind app: chat, code and images in your browser
 const BROWSE = !!$('#groups');
 const PAGE = 40;
 const S = { models: [], makers: {}, gpu: null, ram: 16, q: '', kind: 'all', maker: null, oriel: false, fits: false,
@@ -180,7 +180,7 @@ function guessRam() {
   return dm && dm < 8 ? 8 : 16;
 }
 async function checkGpu() {
-  if (!navigator.gpu) return { ok: false, why: "This browser can't run Oriel's models — use recent Chrome, Edge or Safari 26+. Every model can still be downloaded." };
+  if (!navigator.gpu) return { ok: false, why: "This browser can't run Lockedmind's models — use recent Chrome, Edge or Safari 26+. Every model can still be downloaded." };
   try {
     const a = await navigator.gpu.requestAdapter();
     if (!a) return { ok: false, why: 'No graphics chip is available to this browser — try Chrome or Edge.' };
@@ -192,15 +192,15 @@ function renderDevice() {
   const gpu = S.gpu;
   st.className = 'ds-status ' + (gpu.ok ? 'ok' : 'no');
   st.innerHTML = gpu.ok
-    ? `<span class="dot"></span><div><b>This browser can run Oriel</b><small>Models marked “Open in Oriel” work right here, with nothing to install.</small></div>`
-    : `<span class="dot"></span><div><b>This browser can't run Oriel</b><small>${esc(gpu.why)}</small></div>`;
+    ? `<span class="dot"></span><div><b>This browser can run Lockedmind</b><small>Models marked “Open in Lockedmind” work right here, with nothing to install.</small></div>`
+    : `<span class="dot"></span><div><b>This browser can't run Lockedmind</b><small>${esc(gpu.why)}</small></div>`;
   document.querySelectorAll('#ramSeg button').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.ram === S.ram)));
 }
 
 /* ---------------------------------------------------------------- facts */
 const maker = m => S.makers[m.org] || { name: m.maker || m.org };
 const local = m => !!((m.gguf && (TEXT(m) || PICTURES(m))) || (m.ollama && !m.ollama.cloud) || m.lms);
-// what you'd download: Oriel's copy, else the file, else Ollama's, else LM Studio's
+// what you'd download: Lockedmind's copy, else the file, else Ollama's, else LM Studio's
 const size = m => m.oriel?.gb || ((TEXT(m) || PICTURES(m)) && m.gguf?.gb) || (!m.ollama?.cloud && m.ollama?.gb) || m.lms?.gb || null;
 function needs(m) {
   if (m.oriel) return m.oriel.needs;
@@ -278,7 +278,7 @@ function actions(m) {
   const get = local(m)
     ? `<button class="btn btn-sm btn-brand" data-get="${m.id}">${I.down}Download</button>`
     : `<a class="btn btn-sm" href="${hfUrl(m)}" target="_blank" rel="noopener">Get it ${I.ext}</a>`;
-  const open = m.oriel ? `<a class="btn btn-sm btn-soft" href="${APP}chat.html?model=${m.oriel.id}">Open in Oriel</a>` : '';
+  const open = m.oriel ? `<a class="btn btn-sm btn-soft" href="${APP}chat.html?model=${m.oriel.id}">Open in Lockedmind</a>` : '';
   return get + open;
 }
 function row(m) {
@@ -303,7 +303,7 @@ const SHELVES = [
   { title: 'New this month', test: m => ageDays(m) <= 31 && m.dateKind !== 'updated', sort: 'liked', set: { when: 'month', sort: 'liked' } },
   { title: 'Makes images', test: m => m.kinds.includes('image'), set: { kind: 'image' } },
   { title: 'Best for coding', test: m => m.kinds.includes('code'), set: { kind: 'code' } },
-  { title: 'Open in Oriel — nothing to install', test: m => !!m.oriel, set: { oriel: true } },
+  { title: 'Open in Lockedmind — nothing to install', test: m => !!m.oriel, set: { oriel: true } },
   { title: 'Voices and speech', test: m => m.kinds.includes('voice') || m.kinds.includes('speech'), set: { kind: 'voice' } },
 ];
 function renderModels() {
@@ -334,7 +334,7 @@ function renderModels() {
   const picks = S.models.filter(m => m.pick).sort((a, b) => PICK_ORDER.indexOf(a.pick) - PICK_ORDER.indexOf(b.pick));
   $('#picks').innerHTML = picks.map(m => `<button class="pick" data-open="${m.id}" style="--c1:${brand(m.org)[0]}">
     ${avatar(m.org, 36).replace('class="av', 'class="logo av')}<span class="why">${esc(m.pick)}</span>
-    <span class="nm">${esc(m.name)}</span><span class="sz">${esc(maker(m).name)} · ${gb(size(m) || 0)}${m.oriel ? ' · opens in Oriel' : ''}</span>
+    <span class="nm">${esc(m.name)}</span><span class="sz">${esc(maker(m).name)} · ${gb(size(m) || 0)}${m.oriel ? ' · opens in Lockedmind' : ''}</span>
     ${S.makers[m.org]?.logo ? `<img class="wm" src="${S.makers[m.org].logo}" alt="" aria-hidden="true">` : ''}</button>`).join('');
   $('#useTabs').innerHTML = KINDS.map(k =>
     `<button class="utab" role="tab" data-kind="${k.id}" aria-selected="${S.kind === k.id}">${k.icon}${esc(k.label)}</button>`).join('')
@@ -371,8 +371,8 @@ function ways(m) {
       <div class="wi-main"><b>Download the file</b><small>${gb(g.gb)}${g.exact ? '' : ' (about)'} · ${TEXT(m) ? 'a .gguf file that LM Studio, Jan and Ollama open' : 'a smaller .gguf copy, for ComfyUI’s GGUF add-on'}</small></div>
       <a class="btn btn-brand" href="${fileUrl(g)}" download>${I.down}Download</a></div>`);
   if (m.oriel) out.push(`<div class="way-item oriel"><span class="wi-ic">${I.orb}</span>
-      <div class="wi-main"><b>Open in Oriel</b><small>Chat with it right in this browser — nothing to install, and <b>nothing you type leaves your device</b>.</small></div>
-      <a class="btn ${g?.file ? 'btn-soft' : 'btn-brand'}" href="${APP}chat.html?model=${m.oriel.id}">Open in Oriel</a></div>`);
+      <div class="wi-main"><b>Open in Lockedmind</b><small>Chat with it right in this browser — nothing to install, and <b>nothing you type leaves your device</b>.</small></div>
+      <a class="btn ${g?.file ? 'btn-soft' : 'btn-brand'}" href="${APP}chat.html?model=${m.oriel.id}">Open in Lockedmind</a></div>`);
   if (g && TEXT(m)) out.push(`<div class="way-item"><span class="wi-ic">${I.box}</span>
       <div class="wi-main"><b>In LM Studio</b><small>The free LM Studio app downloads it and runs it for you.</small></div>
       <a class="btn" href="lmstudio://open_from_hf?model=${encodeURIComponent(g.repo)}${g.file ? '&file=' + encodeURIComponent(g.file) : ''}">Open in LM Studio</a></div>`);
@@ -401,7 +401,7 @@ function sheet(m) {
   const how = !local(m) && !m.oriel ? HOWTO[m.kinds.find(k => HOWTO[k])] : '';
   const specs = [
     ['Size', paramsText(m) || '—', m.act ? 'mixture of experts' : m.b ? 'parameters' : ''],
-    ['Download', z ? gb(z) : '—', m.oriel ? 'in Oriel' : m.gguf?.file ? 'one file' : m.ollama && !m.ollama.cloud ? 'with Ollama' : z ? '' : 'see the maker’s page'],
+    ['Download', z ? gb(z) : '—', m.oriel ? 'in Lockedmind' : m.gguf?.file ? 'one file' : m.ollama && !m.ollama.cloud ? 'with Ollama' : z ? '' : 'see the maker’s page'],
     ['Memory needed', f ? `~${gb(f.needs)}` : '—', f ? `<span class="fit ${f.level}"><i></i>${FIT[f.level]}</span>` : ''],
     [m.dateKind === 'updated' ? 'Updated' : 'Released', month(m.date) || '—', m.dateKind === 'updated' ? 'on Ollama' : 'on Hugging Face'],
     ['Good for', esc(m.kinds.filter(k => KIND[k]?.one).map(k => KIND[k].one).slice(0, 2).join(', ')), ''],
@@ -410,7 +410,7 @@ function sheet(m) {
     [m.ollama?.pulls ? 'Ollama pulls' : 'Downloads', m.ollama?.pulls ? short(m.ollama.pulls) : m.dl ? short(m.dl) : '—', m.ollama?.pulls ? 'all time' : m.dl ? 'last month' : ''],
   ].map(([k, v, s]) => `<div class="spec"><small>${k}</small><b>${v}</b><span>${s}</span></div>`).join('');
   const t = m.tested;
-  const tested = t ? `<div class="tested-line">✓ Tested in Oriel on a ${esc(t.on)}${t.tokens_per_s ? ` — about ${Math.round(t.tokens_per_s * 0.75)} words a second` : ' — works'}</div>` : '';
+  const tested = t ? `<div class="tested-line">✓ Tested in Lockedmind on a ${esc(t.on)}${t.tokens_per_s ? ` — about ${Math.round(t.tokens_per_s * 0.75)} words a second` : ' — works'}</div>` : '';
   return `
     <div class="sheet-head">${avatar(m.org, 48)}
       <div><h2 id="sheetTitle">${esc(m.name)}</h2><div class="by">by <button class="linkish" data-maker="${esc(m.org)}">${esc(mk.name)}</button>${m.community ? ' · community model' : ''}${m.pick ? ' · <b>' + esc(m.pick) + '</b>' : ''}</div></div>

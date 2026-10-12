@@ -1,13 +1,18 @@
 """The Mac app and the login item, as installed by `oriel install`.
 
     build_app()       compile native/OrielApp.swift (swiftc — no Xcode needed)
-                      into ~/Applications/oriel.ai.app, with its icon
+                      into ~/Applications/Lockedmind.app, with its icon
     install_agent()   run the oriel server at every login, and start it now
     agent_state()     (state, pid) of that login item, or None if not installed
 
 The app is deliberately a different program from the Oriel notch app in
 /Applications (bundle id app.oriel.Oriel): its own name, its own bundle id,
 installed in your personal Applications folder. Nothing here touches that app.
+
+The app was called oriel.ai until October 2026. Only its name changed: the
+bundle id, the login item's label and the folders for data and logs keep their
+"oriel" names, so permissions, the window's place and every saved chat carry
+over. An oriel.ai.app left from before is replaced by the new one.
 """
 
 import os
@@ -20,9 +25,10 @@ import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent.parent
-APP_NAME = "oriel.ai"
-APP_ID = "ai.oriel.chat"
+APP_NAME = "Lockedmind"
+APP_ID = "ai.oriel.chat"                     # unchanged by the rename, see above
 APP = Path.home() / "Applications" / f"{APP_NAME}.app"
+OLD_APP = Path.home() / "Applications" / "oriel.ai.app"   # the same app under its old name
 LABEL = "ai.oriel.server"
 AGENT = Path.home() / "Library" / "LaunchAgents" / f"{LABEL}.plist"
 LOGS = Path.home() / "Library" / "Logs" / "oriel.ai"
@@ -86,7 +92,7 @@ def build_app():
             "LSApplicationCategoryType": "public.app-category.productivity",
             "NSHighResolutionCapable": True,
             "NSHumanReadableCopyright": "A local mind — runs entirely on this Mac.",
-            "NSMicrophoneUsageDescription": "oriel.ai listens only while you dictate, and turns your speech "
+            "NSMicrophoneUsageDescription": "Lockedmind listens only while you dictate, and turns your speech "
                                             "into text right here on this Mac.",
             "NSAppTransportSecurity": {"NSAllowsLocalNetworking": True},
             # where the server lives, for when there's no login item to start it
@@ -99,13 +105,19 @@ def build_app():
         shutil.rmtree(APP)
     shutil.copytree(staged, APP, symlinks=True)
     subprocess.run([LSREGISTER, "-f", str(APP)], capture_output=True)
+    _remove(OLD_APP)                         # the build under the old name, now replaced
     return APP
 
 
+def _remove(app):
+    if app.exists():
+        shutil.rmtree(app)
+        subprocess.run([LSREGISTER, "-u", str(app)], capture_output=True)
+
+
 def remove_app():
-    if APP.exists():
-        shutil.rmtree(APP)
-        subprocess.run([LSREGISTER, "-u", str(APP)], capture_output=True)
+    _remove(APP)
+    _remove(OLD_APP)
 
 
 def _domain():

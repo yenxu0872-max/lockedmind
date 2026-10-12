@@ -1,4 +1,4 @@
-/* Oriel works offline: this keeps the app's own files and the engine code it
+/* Lockedmind works offline: this keeps the app's own files and the engine code it
    loads, so once a model is downloaded the whole app starts without internet.
 
    - the app's files: from the network when online (so updates show at once),
@@ -9,7 +9,7 @@
      the picture maker's folder), so they pass straight through here
 
    Nothing is ever sent anywhere by this file; it only keeps copies. */
-const APP = 'oriel-app-v7', LIBS = 'oriel-libs-v1';
+const APP = 'oriel-app-v8', LIBS = 'oriel-libs-v1';
 const PINNED = /^https:\/\/cdn\.jsdelivr\.net\/npm\/(?:@[^/]+\/)?[^/@]+@\d+\.\d+\.\d+[^/]*\//;
 
 self.addEventListener('install', e => {

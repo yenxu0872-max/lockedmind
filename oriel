@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""oriel.ai — a local mind, running on your own machine.
+"""Lockedmind — a local mind, running on your own machine. (It was oriel.ai
+until October 2026; this launcher is still the `oriel` command, and also
+answers to `lockedmind`.)
 
 One command for everything. With no arguments it starts the engine, serves the
-oriel.ai interface and proxies the API through a single origin so the browser
+Lockedmind interface and proxies the API through a single origin so the browser
 never has to deal with CORS. With a subcommand it drives the engine directly.
 
     oriel                   start the interface and open the browser
@@ -37,6 +39,9 @@ import urllib.request
 import webbrowser
 from pathlib import Path
 
+# The command as it was typed: `oriel`, or `lockedmind` (a link to this file). Hints and help use the same word.
+CMD = "lockedmind" if Path(sys.argv[0]).name == "lockedmind" else "oriel"
+
 HERE = Path(__file__).resolve().parent
 UI_DIR = HERE / "ui"
 sys.path.insert(0, str(HERE))
@@ -66,6 +71,8 @@ LOGS = macapp.LOGS
 
 
 def say(msg, style=""):
+    if CMD != "oriel":
+        msg = msg.replace("`oriel", "`" + CMD)
     sys.stdout.write(f"  {style}{msg}{OFF}\n")
     sys.stdout.flush()
 
@@ -85,7 +92,7 @@ def free_port(preferred):
 
 
 def already_serving(port):
-    """True if an oriel.ai interface is already up on this port.
+    """True if a Lockedmind interface is already up on this port.
 
     Without this check a second `oriel` silently falls back to a random port
     and you end up with two full stacks running, each holding RAM.
@@ -456,7 +463,7 @@ class Server(socketserver.ThreadingMixIn, http.server.HTTPServer):
 
 
 def serve_app(argv):
-    ap = argparse.ArgumentParser(prog="oriel", description="oriel.ai — local AI")
+    ap = argparse.ArgumentParser(prog=CMD, description="Lockedmind — local AI")
     ap.add_argument("--port", type=int, default=7171, help="interface port")
     ap.add_argument("--model", default=None,
                     help="ollama model name, or a colibri model directory")
@@ -481,7 +488,7 @@ def serve_app(argv):
     # directory), so it is resolved inside each branch, not here.
     coli = Path(a.coli)
     print()
-    say(f"{BOLD}oriel.ai{OFF}{DIM} · a local mind{OFF}")
+    say(f"{BOLD}Lockedmind{OFF}{DIM} · a local mind{OFF}")
     print()
 
     # Don't start a second stack on a fallback port — point at the live one.
@@ -704,9 +711,9 @@ PASSTHROUGH = {
 }
 
 HELP = f"""
-  {BOLD}oriel.ai{OFF}{DIM} · a local mind{OFF}
+  {BOLD}Lockedmind{OFF}{DIM} · a local mind{OFF}
 
-  {BOLD}oriel{OFF}                     open oriel.ai {DIM}(starts its server if needed){OFF}
+  {BOLD}oriel{OFF}                     open Lockedmind {DIM}(starts its server if needed){OFF}
   {BOLD}oriel web{OFF}                 open it in your browser instead
   {BOLD}oriel chat{OFF}                talk to the model in this terminal
   {BOLD}oriel run{OFF} "your prompt"   one-shot prompt, no session
@@ -719,7 +726,7 @@ HELP = f"""
   {BOLD}oriel logs{OFF}                recent server and engine logs
   {BOLD}oriel app{OFF}                 rebuild the Mac app
   {BOLD}oriel publish{OFF}             put the two websites online {DIM}(Cloudflare Pages, free){OFF}
-    {DIM}--domain oriel.chat      on your own domain · --dry-run  build only{OFF}
+    {DIM}--domain lockedmind.com  on your own domain · --dry-run  build only{OFF}
 
   {DIM}run it in this terminal instead of in the background{OFF}
     oriel --no-browser      serve without opening a browser
@@ -732,6 +739,9 @@ HELP = f"""
 
   {DIM}in `oriel chat`: /? lists commands · ctrl-d exits{OFF}
 """
+if CMD != "oriel":
+    HELP = HELP.replace("oriel", CMD)
+
 
 
 def running():
@@ -767,12 +777,12 @@ def running():
         # Never touch the user's Oriel.app notch app — different program,
         # same name. Only ever match our own launcher script.
         is_app = "/applications/" in low
-        is_launcher = (
-            not is_app
-            and "oriel" in low
-            and ("python" in low or cmd.startswith("./oriel") or cmd.startswith("oriel"))
-            and "oriel.log" not in low
-        )
+        # The script itself must be the program being run (`python …/oriel --service`,
+        # `./oriel chat`, or its other name, `lockedmind`): a folder called oriel.ai
+        # somewhere in another program's arguments is not us. Matching on the word
+        # alone once stopped a web preview server, and would stop a video render.
+        is_launcher = not is_app and any(
+            t.rsplit("/", 1)[-1] in ("oriel", "lockedmind") for t in cmd.split()[:3])
         if is_launcher:
             found.append((pid, "interface", cmd))
         elif re.search(r"(?:^|/)ollama serve\b", cmd):   # not its llama-server runners
@@ -787,7 +797,7 @@ def running():
 def short(kind, cmd):
     """A readable one-liner for `oriel ps`."""
     if kind == "interface":
-        return "oriel.ai interface"
+        return "Lockedmind interface"
     if kind == "gateway":
         return "colibri gateway"
     if kind == "ollama":
@@ -951,7 +961,7 @@ def cmd_open(browser=False):
             return 1
     if not browser and macapp.APP.exists():
         subprocess.run(["open", str(macapp.APP)])
-        say(f"{AMBER}oriel.ai{OFF}{DIM} is open · its server runs in the background (`oriel stop` stops it){OFF}")
+        say(f"{AMBER}Lockedmind{OFF}{DIM} is open · its server runs in the background (`oriel stop` stops it){OFF}")
     else:
         webbrowser.open("http://127.0.0.1:7171")
         say(f"open     {BOLD}http://127.0.0.1:7171{OFF}")
@@ -961,7 +971,7 @@ def cmd_open(browser=False):
 
 def cmd_install():
     print()
-    say(f"{BOLD}installing oriel.ai{OFF}")
+    say(f"{BOLD}installing Lockedmind{OFF}")
     # The login item must own the engine (to log it and restart it), and must
     # have port 7171 — so clear out anything an earlier oriel left running.
     for pid, kind, cmd in running():
@@ -995,7 +1005,7 @@ def cmd_install():
         return 1
     say(f"login    {AMBER}the server starts when you log in{OFF}{DIM} · logs in {LOGS}{OFF}")
     subprocess.run(["open", str(app)])
-    say(f"{DIM}opened oriel.ai — it's in your Applications folder and in Spotlight from now on{OFF}")
+    say(f"{DIM}opened Lockedmind — it's in your Applications folder and in Spotlight from now on{OFF}")
     print()
     return 0
 

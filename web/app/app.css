@@ -1,6 +1,6 @@
-/* Oriel — the app's own page: a story told by scrolling.
+/* Lockedmind — the app's own page: a story told by scrolling.
    It opens in daylight, the lights go down while it's about cloud AI, and a
-   light grows back for Oriel. Every scene is plain, readable HTML first;
+   light grows back for Lockedmind. Every scene is plain, readable HTML first;
    motion.js (html.js) moves it, and people who ask for less motion get the
    plain page. */
 @font-face{font-family:'Geist';src:url('fonts/Geist-Variable.woff2') format('woff2');font-weight:100 900;font-display:swap}

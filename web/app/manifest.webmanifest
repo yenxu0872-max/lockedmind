@@ -1,6 +1,6 @@
 {
-  "name": "Oriel — private AI",
-  "short_name": "Oriel",
+  "name": "Lockedmind — private AI",
+  "short_name": "Lockedmind",
   "description": "Chat, write code and make pictures with an AI that runs on your own computer. Nothing you type leaves your device.",
   "start_url": "chat.html",
   "scope": "./",

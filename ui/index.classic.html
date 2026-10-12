@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>oriel.ai</title>
+<title>Lockedmind</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230e0d0c'/%3E%3Cpath d='M16 6c-4.4 0-8 3.6-8 8v12h16V14c0-4.4-3.6-8-8-8z' fill='none' stroke='%23e0a355' stroke-width='2'/%3E%3Cpath d='M16 6v20M8 16h16' stroke='%23e0a355' stroke-width='1.2' opacity='.5'/%3E%3C/svg%3E">
 <style>
 /* ============================ tokens ============================ */
@@ -282,7 +282,7 @@ footer{flex-shrink:0;border-top:1px solid var(--line-soft);background:var(--bg-e
             stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/>
       <path d="M16 5v22M7.7 16.5h16.6" stroke="var(--accent)" stroke-width="1.3" opacity=".45"/>
     </svg>
-    <b>oriel<i>.ai</i></b>
+    <b>Lockedmind</b>
   </div>
 
   <div class="tabs" role="tablist">
@@ -398,7 +398,7 @@ let MODEL = "olmoe-colibri";
 // This exists mainly to buy back some honesty: with no system turn at all it
 // will confidently invent specifications, dates and names.
 const SYSTEM = [
-  "You are oriel, a small language model running locally on this machine.",
+  "You are Lockedmind, a small language model running locally on this machine.",
   "Answer directly and stop when the question is answered.",
   "If you are not sure of a fact, say so plainly — never invent names, numbers, dates, specifications or sources.",
   "Prefer plain prose. Use a list only when the answer really is a list.",
@@ -446,7 +446,7 @@ function bubble(role){
   empty.style.display = "none";
   const el = document.createElement("div");
   el.className = "msg " + (role === "user" ? "me" : "ai");
-  el.innerHTML = `<div class="who"><span class="tag"></span><span>${role === "user" ? "You" : "oriel"}</span></div><div class="body"></div><div class="meta"></div>`;
+  el.innerHTML = `<div class="who"><span class="tag"></span><span>${role === "user" ? "You" : "Lockedmind"}</span></div><div class="body"></div><div class="meta"></div>`;
   thread.appendChild(el);
   toBottom();
   return { root: el, body: el.querySelector(".body"), meta: el.querySelector(".meta") };

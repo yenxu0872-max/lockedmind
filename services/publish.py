@@ -1,10 +1,10 @@
 """`oriel publish` — puts the two websites online with Cloudflare Pages.
 
     oriel publish                     both sites, on free *.pages.dev addresses
-    oriel publish --domain oriel.chat  the Oriel app at oriel.chat, Oriel Models at models.oriel.chat
+    oriel publish --domain lockedmind.com  the Lockedmind app at lockedmind.com, Lockedmind Models at models.lockedmind.com
     oriel publish --dry-run           build them into build/site/ and stop
 
-Two Pages projects, one per product: the Oriel app (web/app/) and Oriel
+Two Pages projects, one per product: the Lockedmind app (web/app/) and Lockedmind
 Models (web/, without the app). Each links to the other by its public address,
 so the links are rewritten in the copies built here — the sources keep their
 relative links for local testing. Nothing private goes up: build caches,
@@ -34,7 +34,7 @@ HEADERS = """/*
 
 
 def config():
-    c = {"domain": None, "app_project": "oriel", "models_project": "oriel-models"}
+    c = {"domain": None, "app_project": "lockedmind", "models_project": "lockedmind-models"}
     if CONFIG.exists():
         c.update(json.loads(CONFIG.read_text()))
     return c
@@ -176,7 +176,7 @@ def publish(argv, say=print):
     if d:
         for key, host in (("app", d), ("models", f"models.{d}")):
             say(f"domain   {host} → {c[key + '_project']}: {attach_domain(acct, c[key + '_project'], host)}")
-    say(f"\nlive     Oriel         {urls['app']}\n         Oriel Models  {urls['models']}")
+    say(f"\nlive     Lockedmind         {urls['app']}\n         Lockedmind Models  {urls['models']}")
     if not d:
         say("         (free addresses — `oriel publish --domain yourdomain` moves them to your own domain)")
     return 0

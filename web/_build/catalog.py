@@ -116,7 +116,7 @@ M = [
      "Google's newest small model. It understands images and audio as well as text.",
      ["chat", "vision", "languages"], None, "gemma4:e2b", "google/gemma-4-E2B-it", None),
     ("gemma4-e4b", "Gemma 4 E4B", "Google",
-     "What Oriel for Mac runs: quick and clever, and it can read photos and documents.",
+     "What Lockedmind for Mac runs: quick and clever, and it can read photos and documents.",
      ["chat", "vision", "languages"], None, "gemma4:e4b-it-qat", "google/gemma-4-E4B-it", "Best to download"),
     ("gemma4-12b", "Gemma 4 12B", "Google",
      "More knowledge and sharper reasoning than E4B, and it sees images too.",
@@ -207,8 +207,8 @@ MAKERS = {
     "NousResearch": ("Nous Research", "Hermes", "Tuned to follow instructions closely and stay in character."),
 }
 
-# Loaded and answered correctly in Oriel's browser build, on a MacBook Air M4
-# (16 GB), with Oriel's own instructions; writing speed in tokens a second.
+# Loaded and answered correctly in Lockedmind's browser build, on a MacBook Air M4
+# (16 GB), with Lockedmind's own instructions; writing speed in tokens a second.
 TESTED = {"llama3.2-1b": 60, "smollm2-360m": 65, "qwen3.5-0.8b": 34, "qwen3-0.6b": None, "qwen2.5-coder-1.5b": 13,
           "gemma2-2b": 16, "phi3.5-mini": 20, "phi3.5-vision": 21, "mistral-7b": 11}
 TESTED_ON = "MacBook Air M4, 16 GB"
