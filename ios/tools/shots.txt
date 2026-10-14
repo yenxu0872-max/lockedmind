@@ -1,0 +1,28 @@
+welcome show
+light
+wait 1.5
+shot raw-4-privacy
+welcome done
+wait 1.5
+shot raw-1-start
+send Help me write a friendly message turning down an invitation to a party this weekend.
+idle
+shot raw-3-message
+new
+send Give me 8 thoughtful birthday gift ideas for a friend who loves cooking and hiking.
+idle
+new
+send Should I learn Python or JavaScript first?
+idle
+new
+send Explain how compound interest works, simply, with a quick example.
+idle
+new
+send Help me plan a balanced week: I work 9 to 5, want to exercise three times and cook at home more.
+idle
+shot raw-2-answer
+log
+screen chats
+wait 1.5
+shot raw-5-chats
+quit
