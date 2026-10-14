@@ -41,10 +41,14 @@ GOOD AT EVERYDAY THINGS
 • Brainstorm gift ideas, names, recipes and more.
 • Help with code, in blocks you can copy.
 
-CALM AND CLEAR
-• Answers that get to the point, written as you watch.
-• Choose short, balanced or detailed answers.
-• Tell it your name and what you'd like it to know about you.
+LOCKED WITH FACE ID
+• Turn on the lock and Lockedmind hides your chats the moment you leave, opening again only for your face (or Touch ID, or your passcode).
+• iOS does the checking. Lockedmind never sees your face, fingerprint or passcode.
+
+A CALM PLACE TO THINK
+• Answers are set like the pages of a book, joined by a thread of light to the questions you asked.
+• A living orb that glows while it thinks, and marks every answer "Written on this iPhone".
+• Choose short, balanced or detailed answers, and tell it your name and what you'd like it to know about you.
 • Search, rename and delete your chats. Copy or share any answer.
 
 WHAT YOU NEED
@@ -55,7 +59,7 @@ Lockedmind can't browse the web or look up live information, and like any AI it 
 
 ## Keywords [100]
 
-private,offline,chatbot,assistant,ai,chat,on-device,writing,secure,no account,airplane mode,notes
+private,offline,chatbot,assistant,ai,chat,on-device,writing,secure,lock,no account,airplane mode
 
 (No other apps' names: Apple rejects keywords that use someone else's trademark.)
 
@@ -90,18 +94,20 @@ beyond what iOS itself provides.
 > Please review on a device with Apple Intelligence turned on (iPhone 15 Pro or later). On
 > devices without Apple Intelligence, the app shows a screen explaining what it needs.
 >
-> To try it: tap "Start chatting", then tap one of the four suggestions or type a question.
+> To try it: tap "Begin", then tap one of the suggestions or type a question. The optional
+> Face ID lock is off by default (Settings › Lock with Face ID).
 
 ## Screenshots
 
-App Store Connect needs at least one set for the **6.9-inch iPhone** (1320 × 2868 portrait).
-`screenshots/` holds five, framed with a headline. The current ones are drafts captured from
-the app's own code running on the Mac (`tools/preview.sh`): no status bar, and the Mac greys
-out the welcome button. Re-make them from the real app in the iPhone Simulator with
-`tools/screenshots.sh` (needs Xcode with the iOS platform). Headlines:
+`screenshots/` holds six, 1320 × 2868 (the 6.9-inch iPhone size App Store Connect asks for),
+taken from the real app in the iPhone Simulator with real answers from Apple's model, and framed
+with a headline. Upload them in this order:
 
-1. Private AI that lives on your iPhone
+1. A private mind that lives on your iPhone
 2. Plans, explains and brainstorms
 3. Writes messages for you
-4. Nothing you write leaves your phone
-5. Your chats, only on this iPhone
+4. Locked with Face ID. Open only for you.
+5. Your chats stay on this iPhone
+6. Nothing you write ever leaves it
+
+To make them again: `tools/screenshots.sh` (about four minutes).

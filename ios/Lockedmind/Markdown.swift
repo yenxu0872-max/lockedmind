@@ -45,6 +45,7 @@ enum Markdown {
                 continue
             }
             if line.isEmpty { flush(); continue }
+            if ["-", "*", "•", "—", "–"].contains(line) { continue }    // a stray mark on its own line
             if let level = heading(line) {
                 flush()
                 blocks.append(.heading(level, String(line.drop { $0 == "#" }).trimmingCharacters(in: .whitespaces)))
@@ -101,16 +102,19 @@ enum Markdown {
     }
 }
 
-/// A reply, drawn.
+/// A reply, drawn like a page of a letter: serif text, the orb's colours
+/// for bullets and step numbers.
 struct MarkdownView: View {
     let text: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 13) {
             ForEach(Array(Markdown.blocks(text).enumerated()), id: \.offset) { _, block in
                 view(for: block)
             }
         }
+        .font(Theme.answer)
+        .lineSpacing(3.5)
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
@@ -118,19 +122,20 @@ struct MarkdownView: View {
         switch block {
         case .heading(let level, let text):
             Text(Markdown.inline(text))
-                .font(level <= 2 ? .title3.weight(.semibold) : .headline)
-                .padding(.top, 4)
+                .font(.system(level <= 2 ? .title3 : .headline, design: .serif).weight(.semibold))
+                .padding(.top, 6)
                 .accessibilityAddTraits(.isHeader)
         case .paragraph(let text):
             Text(Markdown.inline(text))
         case .list(let items):
             VStack(alignment: .leading, spacing: 7) {
                 ForEach(Array(items.enumerated()), id: \.offset) { _, item in
-                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    HStack(alignment: .firstTextBaseline, spacing: 9) {
                         Text(item.marker)
+                            .font(.system(.body, design: .rounded).weight(item.marker == "•" ? .black : .bold))
                             .monospacedDigit()
-                            .foregroundStyle(item.marker == "•" ? .secondary : .primary)
-                            .frame(minWidth: 16, alignment: .trailing)
+                            .foregroundStyle(Theme.orb)
+                            .frame(minWidth: 18, alignment: .trailing)
                         Text(Markdown.inline(item.text))
                     }
                     .padding(.leading, CGFloat(item.depth) * 18)
@@ -139,9 +144,9 @@ struct MarkdownView: View {
         case .code(let language, let text):
             CodeBlock(language: language, code: text)
         case .quote(let text):
-            HStack(spacing: 10) {
-                Capsule().fill(Color.secondary.opacity(0.35)).frame(width: 3)
-                Text(Markdown.inline(text)).foregroundStyle(.secondary)
+            HStack(spacing: 12) {
+                Capsule().fill(Theme.thread).frame(width: 3)
+                Text(Markdown.inline(text)).italic().foregroundStyle(.secondary)
             }
             .fixedSize(horizontal: false, vertical: true)
         case .rule:
@@ -159,7 +164,7 @@ struct CodeBlock: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Text(language.isEmpty ? "code" : language.lowercased())
-                    .font(.caption.monospaced())
+                    .font(.system(.caption, design: .monospaced).weight(.medium))
                     .foregroundStyle(.secondary)
                 Spacer()
                 Button {
@@ -183,7 +188,7 @@ struct CodeBlock: View {
                     .padding(12)
             }
         }
-        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Color(.separator).opacity(0.5)))
+        .background(Theme.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Theme.hairline))
     }
 }

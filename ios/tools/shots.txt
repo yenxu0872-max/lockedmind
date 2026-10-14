@@ -1,9 +1,10 @@
+set faceLock false
 welcome show
 light
-wait 1.5
-shot raw-4-privacy
+wait 3
+shot raw-6-welcome
 welcome done
-wait 1.5
+wait 2
 shot raw-1-start
 send Help me write a friendly message turning down an invitation to a party this weekend.
 idle
@@ -22,7 +23,11 @@ send Help me plan a balanced week: I work 9 to 5, want to exercise three times a
 idle
 shot raw-2-answer
 log
-screen chats
+screen locked
 wait 1.5
+shot raw-4-locked
+screen none
+chats
+wait 1.8
 shot raw-5-chats
 quit

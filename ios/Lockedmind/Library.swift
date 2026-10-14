@@ -16,6 +16,8 @@ struct Message: Identifiable, Codable, Equatable, Sendable {
     /// Why a reply could not be written. Shown in place of the reply, and
     /// never shown to the model.
     var problem: String? = nil
+    /// How long the reply took to write, in seconds.
+    var seconds: Double? = nil
 }
 
 struct Chat: Identifiable, Codable, Equatable, Sendable {
@@ -38,8 +40,13 @@ struct Chat: Identifiable, Codable, Equatable, Sendable {
     }
 
     static func shorten(_ text: String, to limit: Int) -> String {
-        let flat = text.split(whereSeparator: \.isNewline).joined(separator: " ")
-            .replacingOccurrences(of: "**", with: "").replacingOccurrences(of: "### ", with: "")
+        // Plain words only: no heading marks, bullets, step numbers, bold or code marks.
+        let flat = text.split(whereSeparator: \.isNewline)
+            .map { $0.trimmingCharacters(in: .whitespaces)
+                .replacingOccurrences(of: #"^(#{1,6}|[-*•+]|\d{1,3}[.)])\s+"#, with: "", options: .regularExpression) }
+            .filter { !$0.isEmpty && !$0.hasPrefix("```") }
+            .joined(separator: " ")
+            .replacingOccurrences(of: "**", with: "").replacingOccurrences(of: "`", with: "")
             .trimmingCharacters(in: .whitespaces)
         guard flat.count > limit else { return flat }
         let cut = flat.prefix(limit)

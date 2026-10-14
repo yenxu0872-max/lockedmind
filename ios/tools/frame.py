@@ -15,16 +15,18 @@ W, H = 1320, 2868
 FONT = "/System/Library/Fonts/SFNS.ttf"
 
 HEADLINES = {
-    "1": "Private AI that lives\non your iPhone",
+    "1": "A private mind that\nlives on your iPhone",
     "2": "Plans, explains\nand brainstorms",
     "3": "Writes messages\nfor you",
-    "4": "Nothing you write\nleaves your phone",
-    "5": "Your chats,\nonly on this iPhone",
+    "4": "Locked with Face ID.\nOpen only for you.",
+    "5": "Your chats stay\non this iPhone",
+    "6": "Nothing you write\never leaves it",
 }
+SERIF = "/System/Library/Fonts/NewYork.ttf"
 
 
-def font(size, weight="Bold"):
-    f = ImageFont.truetype(FONT, size)
+def font(size, weight="Bold", path=FONT):
+    f = ImageFont.truetype(path, size)
     f.set_variation_by_name(weight)
     return f
 
@@ -52,7 +54,7 @@ def frame(raw: Path, key: str) -> Image.Image:
     d = ImageDraw.Draw(canvas)
 
     # The headline: two lines, centred.
-    title = font(104)
+    title = font(100, "Medium", SERIF)    # the app's own answer typeface
     d.multiline_text((W / 2, 250), HEADLINES[key], font=title, fill=(245, 245, 247),
                      anchor="ma", align="center", spacing=22)
 

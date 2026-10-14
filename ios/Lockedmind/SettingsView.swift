@@ -9,7 +9,19 @@ struct SettingsView: View {
     @AppStorage("name") private var name = ""
     @AppStorage("about") private var about = ""
     @AppStorage(Library.backupsKey) private var backups = false
+    @AppStorage(Guard.key) private var lockOn = false
+    @Environment(Guard.self) private var guardian
     @State private var confirmDelete = false
+    @State private var noPasscode = false
+
+    /// Turning the lock on first proves the person can unlock it.
+    private var lockBinding: Binding<Bool> {
+        Binding(get: { lockOn }, set: { wanted in
+            guard wanted else { lockOn = false; return }
+            guard Guard.isPossible else { noPasscode = true; return }
+            Task { if await guardian.confirm() { lockOn = true } }
+        })
+    }
 
     private var version: String {
         let info = Bundle.main.infoDictionary
@@ -39,6 +51,14 @@ struct SettingsView: View {
                 Text("About you")
             } footer: {
                 Text("Optional. Kept on this iPhone and given to the model with each chat.")
+            }
+
+            Section {
+                Toggle(isOn: lockBinding) {
+                    Label("Lock with \(Guard.method.name)", systemImage: Guard.method.symbol)
+                }
+            } footer: {
+                Text("Lockedmind hides your chats whenever you leave it, and opens again only for you. iOS does the checking; Lockedmind never sees your face or fingerprint.")
             }
 
             Section {
@@ -73,8 +93,15 @@ struct SettingsView: View {
                 Text("About")
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(Theme.paper.ignoresSafeArea())
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.inline)
+        .alert("Set a passcode first", isPresented: $noPasscode) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("The lock uses your iPhone's Face ID or passcode. Set a passcode in the Settings app, then try again.")
+        }
         .confirmationDialog("Delete all chats?", isPresented: $confirmDelete, titleVisibility: .visible) {
             Button("Delete all chats", role: .destructive) { app.deleteAll() }
         } message: {
@@ -90,11 +117,11 @@ private struct Fact: View {
         HStack(alignment: .top, spacing: 14) {
             Image(systemName: icon)
                 .font(.title3)
-                .foregroundStyle(Theme.accent)
+                .foregroundStyle(Theme.orb)
                 .frame(width: 28)
             VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.subheadline.weight(.semibold))
-                Text(text).font(.footnote).foregroundStyle(.secondary)
+                Text(title).font(.system(.subheadline, design: .rounded).weight(.semibold))
+                Text(text).font(.system(.footnote, design: .serif)).foregroundStyle(.secondary)
             }
         }
         .padding(.vertical, 3)

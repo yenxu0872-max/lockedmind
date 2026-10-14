@@ -10,38 +10,71 @@ struct LockedmindApp: App {
     #else
     @State private var model = AppModel(library: Library())
     #endif
+    @State private var guardian = Guard()
     @Environment(\.scenePhase) private var phase
 
     var body: some Scene {
         WindowGroup {
             RootView()
                 .environment(model)
+                .environment(guardian)
                 .tint(Theme.accent)
                 #if PREVIEW
                 .modifier(PreviewHarness(model: model))
                 #endif
         }
-        .onChange(of: phase) {
-            if phase == .active { model.refreshAvailability() }
-            if phase == .background { model.library.saveNow() }
+        .onChange(of: phase) { _, new in
+            if new == .active { model.refreshAvailability() }
+            if new == .background {
+                model.library.saveNow()
+                guardian.lockIfOn()
+            }
         }
     }
 }
 
 struct RootView: View {
     @Environment(AppModel.self) private var app
+    @Environment(Guard.self) private var guardian
+    @Environment(\.scenePhase) private var phase
     @AppStorage("welcomed") private var welcomed = false
+    @AppStorage(Guard.key) private var lockOn = false
+    @State private var wasAway = false
 
     var body: some View {
-        Group {
-            if !welcomed {
-                WelcomeView { withAnimation(.smooth) { welcomed = true } }
-            } else if app.isAvailable {
-                ChatView()
-            } else {
-                UnavailableView(availability: app.availability)
+        ZStack {
+            Group {
+                if !welcomed {
+                    WelcomeView { withAnimation(.smooth(duration: 0.6)) { welcomed = true } }
+                } else if app.isAvailable {
+                    ChatView()
+                } else {
+                    UnavailableView(availability: app.availability)
+                }
+            }
+            .animation(.smooth, value: app.isAvailable)
+
+            if guardian.locked {
+                LockScreen { Task { await guardian.unlock() } }
+                    .transition(.opacity)
+                    .zIndex(2)
+            } else if lockOn && phase != .active {
+                // Covers the chats in the app switcher.
+                LockScreen(unlock: nil)
+                    .zIndex(1)
             }
         }
-        .animation(.smooth, value: app.isAvailable)
+        .task {
+            if guardian.locked { await guardian.unlock() }
+        }
+        .onChange(of: phase) {
+            // Ask straight away when coming back, but not again after a "Not now"
+            // (the Face ID prompt itself makes the app briefly inactive).
+            if phase == .background { wasAway = true }
+            if phase == .active, wasAway {
+                wasAway = false
+                if guardian.locked { Task { await guardian.unlock() } }
+            }
+        }
     }
 }

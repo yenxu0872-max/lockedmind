@@ -35,11 +35,13 @@ struct PreviewHarness: ViewModifier {
                     case "not-eligible": UnavailableView(availability: .unavailable(.deviceNotEligible))
                     case "ai-off": UnavailableView(availability: .unavailable(.appleIntelligenceNotEnabled))
                     case "downloading": UnavailableView(availability: .unavailable(.modelNotReady))
+                    case "locked": LockScreen(unlock: {})
                     default: EmptyView()
                     }
                 }
-                .background(screen.isEmpty ? Color.clear : Color(.systemBackground))
+                .background(screen.isEmpty ? Color.clear : Theme.paper)
                 .environment(model)
+                .environment(Guard())
             }
             .task { await run() }
     }
@@ -81,6 +83,9 @@ struct PreviewHarness: ViewModifier {
             case "chats": NotificationCenter.default.post(name: Self.showChats, object: nil)
             case "welcome": UserDefaults.standard.set(rest == "done", forKey: "welcomed")
             case "new": model.newChat()
+            case "set":
+                let kv = rest.split(separator: " ").map(String.init)
+                if kv.count == 2 { UserDefaults.standard.set(kv[1] == "true", forKey: kv[0]) }
             case "open": if let first = model.library.chats.first { model.open(first.id) }
             case "screen": screen = rest == "none" ? "" : rest
             case "sendlong":
@@ -95,6 +100,7 @@ struct PreviewHarness: ViewModifier {
                     log("window \(w.bounds.size) key=\(w.isKeyWindow): \(chain.joined(separator: " → "))")
                 }
             case "quit":
+                UserDefaults.standard.synchronize()
                 FileManager.default.createFile(atPath: out.appending(path: "finished").path, contents: nil)
                 exit(0)
             default: log("unknown: \(line)")

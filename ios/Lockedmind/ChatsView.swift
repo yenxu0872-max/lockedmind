@@ -38,13 +38,24 @@ struct ChatsView: View {
     var body: some View {
         NavigationStack {
             List {
+                if !app.library.chats.isEmpty && query.isEmpty {
+                    vault
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(top: 6, leading: 4, bottom: 6, trailing: 4))
+                }
                 ForEach(sections, id: \.0) { title, chats in
-                    Section(title) {
-                        ForEach(chats) { chat in row(chat) }
+                    Section {
+                        ForEach(chats) { chat in
+                            row(chat).listRowBackground(Theme.card)
+                        }
+                    } header: {
+                        Text(title).font(.system(.footnote, design: .rounded).weight(.semibold))
                     }
                 }
             }
             .listStyle(.insetGrouped)
+            .scrollContentBackground(.hidden)
+            .background(Theme.paper.ignoresSafeArea())
             .overlay {
                 if app.library.chats.isEmpty {
                     ContentUnavailableView("No chats yet", systemImage: "bubble.left.and.bubble.right",
@@ -77,6 +88,22 @@ struct ChatsView: View {
         }
     }
 
+    /// The top of the list: how many chats are kept, and where.
+    private var vault: some View {
+        let count = app.library.chats.count
+        return HStack(spacing: 14) {
+            LivingOrb(size: 40, mood: .resting, dot: false, glyph: "lock.fill", glow: false, animated: false)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("\(count) \(count == 1 ? "chat" : "chats"), locked away")
+                    .font(.system(.headline, design: .rounded))
+                Text("Kept only on this iPhone. Nothing is sent anywhere.")
+                    .font(.system(.subheadline, design: .serif))
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .accessibilityElement(children: .combine)
+    }
+
     private func row(_ chat: Chat) -> some View {
         Button {
             app.open(chat.id)
@@ -85,7 +112,7 @@ struct ChatsView: View {
             VStack(alignment: .leading, spacing: 3) {
                 HStack(alignment: .firstTextBaseline) {
                     Text(chat.displayTitle)
-                        .font(.body.weight(chat.id == app.current.id ? .semibold : .regular))
+                        .font(.system(.body, design: .rounded).weight(chat.id == app.current.id ? .bold : .semibold))
                         .lineLimit(1)
                     Spacer()
                     Text(chat.updated.formatted(Calendar.current.isDateInToday(chat.updated)
@@ -94,7 +121,7 @@ struct ChatsView: View {
                         .foregroundStyle(.secondary)
                 }
                 Text(chat.preview)
-                    .font(.subheadline)
+                    .font(.system(.subheadline, design: .serif))
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
             }

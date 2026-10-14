@@ -16,7 +16,7 @@ out=$ios/AppStore/screenshots
 dd=$ios/build/dd
 bundle=io.github.yenxu0872-max.lockedmind
 
-# The biggest current iPhone ("Pro Max") gives the 1320 x 2868 pictures Apple asks for.
+# The biggest current iPhone ("Pro Max") gives the 6.9-inch pictures Apple asks for.
 device=$(xcrun simctl list devices available | grep -E "iPhone [0-9]+ Pro Max" | tail -1 | sed -E 's/^ *(.*) \(([0-9A-F-]+)\).*/\2/')
 [[ -n $device ]] || { echo "No 'Pro Max' iPhone simulator found. Add one in Xcode › Window › Devices and Simulators."; exit 1; }
 echo "simulator $device"
@@ -53,4 +53,5 @@ done
 
 xcrun simctl status_bar "$device" clear
 mkdir -p "$out"
+rm -f "$out"/*.png
 python3 "$here/frame.py" "$raw" "$out"

@@ -16,6 +16,8 @@ final class AppModel {
     private(set) var availability = Brain.availability
     /// Goes up by one on each send, for the haptic tap.
     private(set) var sends = 0
+    /// Goes up by one when a reply's first words arrive, for a softer tap.
+    private(set) var firstWords = 0
 
     @ObservationIgnored private var task: Task<Void, Never>?
     @ObservationIgnored private var watching: Task<Void, Never>?
@@ -92,11 +94,15 @@ final class AppModel {
 
         task = Task { [weak self] in
             guard let self else { return }
+            let started = Date.now
+            var spoke = false
             do {
                 let text = try await brain.reply(to: asked, voice: voice) { text in
+                    if !spoke && !text.isEmpty { spoke = true; self.firstWords += 1 }
                     self.edit(chatID) { $0.edit(reply.id) { $0.text = text } }
                 }
-                edit(chatID) { $0.edit(reply.id) { $0.text = text.trimmingCharacters(in: .whitespacesAndNewlines) } }
+                let seconds = Date.now.timeIntervalSince(started)
+                edit(chatID) { $0.edit(reply.id) { $0.text = text.trimmingCharacters(in: .whitespacesAndNewlines); $0.seconds = seconds } }
             } catch {
                 #if PREVIEW
                 FileHandle.standardError.write(Data("reply failed: \(type(of: error)) \(String(reflecting: error))\n".utf8))
