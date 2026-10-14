@@ -11,16 +11,27 @@ struct LockedmindApp: App {
     @State private var model = AppModel(library: Library())
     #endif
     @State private var guardian = Guard()
+    @State private var connection = Connection()
+    @State private var speaker = Speaker()
+    @State private var dictation = Dictation()
     @Environment(\.scenePhase) private var phase
+
+    init() {
+        Theme.registerFonts()
+    }
 
     var body: some Scene {
         WindowGroup {
             RootView()
                 .environment(model)
                 .environment(guardian)
+                .environment(connection)
+                .environment(speaker)
+                .environment(dictation)
+                .font(Theme.ui(.body))
                 .tint(Theme.accent)
                 #if PREVIEW
-                .modifier(PreviewHarness(model: model))
+                .modifier(PreviewHarness(model: model, connection: connection, speaker: speaker, dictation: dictation))
                 #endif
         }
         .onChange(of: phase) { _, new in
@@ -28,6 +39,7 @@ struct LockedmindApp: App {
             if new == .background {
                 model.library.saveNow()
                 guardian.lockIfOn()
+                dictation.stop()
             }
         }
     }

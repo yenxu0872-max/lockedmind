@@ -2,7 +2,7 @@
 # Makes the App Store screenshots from the real app in the iPhone Simulator:
 # builds Lockedmind with the PREVIEW flag, runs tools/shots.txt in a 6.9-inch
 # iPhone with a clean status bar, takes each screenshot with simctl, then
-# frames them (tools/frame.py) into AppStore/screenshots/.
+# frames them (tools/frame.swift) into AppStore/screenshots/.
 #
 #   tools/screenshots.sh            needs Xcode with the iOS platform installed
 #
@@ -34,8 +34,11 @@ xcrun simctl ui "$device" appearance light
 xcrun simctl uninstall "$device" $bundle 2>/dev/null || true
 xcrun simctl install "$device" "$app"
 
-rm -rf "$raw"; mkdir -p "$raw/data"
-SIMCTL_CHILD_LM_SCRIPT=$here/shots.txt SIMCTL_CHILD_LM_OUT=$raw SIMCTL_CHILD_LM_DATA=$raw/data \
+rm -rf "$raw"; mkdir -p "$raw/data" "$raw/samples"
+# The photo and the PDF the screenshots attach: made here, so they're ours to show.
+python3 "$here/samples.py" "$raw/samples"
+sed -e "s|PHOTO|$raw/samples/note.jpg|" -e "s|PDF|$raw/samples/lease.pdf|" "$here/shots.txt" > "$raw/script.txt"
+SIMCTL_CHILD_LM_SCRIPT=$raw/script.txt SIMCTL_CHILD_LM_OUT=$raw SIMCTL_CHILD_LM_DATA=$raw/data \
 SIMCTL_CHILD_LM_SHOTS=external xcrun simctl launch "$device" $bundle >/dev/null
 
 # Take each screenshot when the app asks for it.
@@ -54,4 +57,4 @@ done
 xcrun simctl status_bar "$device" clear
 mkdir -p "$out"
 rm -f "$out"/*.png
-python3 "$here/frame.py" "$raw" "$out"
+swift "$here/frame.swift" "$raw" "$out"

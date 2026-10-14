@@ -1,4 +1,5 @@
-// Every chat on this iPhone, newest first, with search, rename and delete.
+// Every chat on this iPhone: pinned ones first, then by day, with search,
+// pin, rename, share and delete.
 
 import SwiftUI
 
@@ -18,14 +19,15 @@ struct ChatsView: View {
         }
     }
 
-    /// Today, Yesterday, Previous 7 days, then by month.
+    /// Pinned, Today, Yesterday, Previous 7 days, then by month.
     private var sections: [(String, [Chat])] {
         let calendar = Calendar.current
         var order: [String] = []
         var groups: [String: [Chat]] = [:]
         for chat in found {
             let key: String
-            if calendar.isDateInToday(chat.updated) { key = "Today" }
+            if chat.isPinned { key = "Pinned" }
+            else if calendar.isDateInToday(chat.updated) { key = "Today" }
             else if calendar.isDateInYesterday(chat.updated) { key = "Yesterday" }
             else if chat.updated > calendar.date(byAdding: .day, value: -7, to: .now)! { key = "Previous 7 days" }
             else { key = chat.updated.formatted(.dateTime.month(.wide).year()) }
@@ -49,17 +51,24 @@ struct ChatsView: View {
                             row(chat).listRowBackground(Theme.card)
                         }
                     } header: {
-                        Text(title).font(.system(.footnote, design: .rounded).weight(.semibold))
+                        HStack(spacing: 5) {
+                            if title == "Pinned" { Image(systemName: "pin.fill").font(.system(size: 10, weight: .bold)) }
+                            Text(title)
+                        }
+                        .font(Theme.ui(.footnote, .semibold))
                     }
                 }
             }
             .listStyle(.insetGrouped)
             .scrollContentBackground(.hidden)
-            .background(Theme.paper.ignoresSafeArea())
+            .background { Paper(energy: 0) }
             .overlay {
                 if app.library.chats.isEmpty {
-                    ContentUnavailableView("No chats yet", systemImage: "bubble.left.and.bubble.right",
-                                           description: Text("Your chats are kept on this iPhone, and only here."))
+                    ContentUnavailableView {
+                        Label("No chats yet", systemImage: "bubble.left.and.bubble.right")
+                    } description: {
+                        Text("Your chats are kept on this iPhone, and only here.").font(Theme.ui(.subheadline))
+                    }
                 } else if found.isEmpty {
                     ContentUnavailableView.search(text: query)
                 }
@@ -88,16 +97,17 @@ struct ChatsView: View {
         }
     }
 
-    /// The top of the list: how many chats are kept, and where.
+    /// The top of the list: how many chats are kept, how many words, and where.
     private var vault: some View {
         let count = app.library.chats.count
+        let questions = app.library.chats.reduce(0) { $0 + $1.messages.filter { $0.role == .user }.count }
         return HStack(spacing: 14) {
-            LivingOrb(size: 40, mood: .resting, dot: false, glyph: "lock.fill", glow: false, animated: false)
+            LivingOrb(size: 42, mood: .resting, glow: false, animated: false)
             VStack(alignment: .leading, spacing: 2) {
-                Text("\(count) \(count == 1 ? "chat" : "chats"), locked away")
-                    .font(.system(.headline, design: .rounded))
-                Text("Kept only on this iPhone. Nothing is sent anywhere.")
-                    .font(.system(.subheadline, design: .serif))
+                Text("\(count) \(count == 1 ? "chat" : "chats") locked away")
+                    .font(Theme.ui(.headline, .semibold))
+                Text("\(questions) \(questions == 1 ? "question" : "questions") · kept only on this iPhone")
+                    .font(Theme.ui(.subheadline))
                     .foregroundStyle(.secondary)
             }
         }
@@ -109,21 +119,33 @@ struct ChatsView: View {
             app.open(chat.id)
             dismiss()
         } label: {
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(alignment: .firstTextBaseline) {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    if chat.id == app.current.id {
+                        Circle().fill(Theme.orb).frame(width: 7, height: 7)
+                    }
                     Text(chat.displayTitle)
-                        .font(.system(.body, design: .rounded).weight(chat.id == app.current.id ? .bold : .semibold))
+                        .font(Theme.ui(.body, .semibold))
                         .lineLimit(1)
                     Spacer()
                     Text(chat.updated.formatted(Calendar.current.isDateInToday(chat.updated)
                                                 ? .dateTime.hour().minute() : .dateTime.day().month(.abbreviated)))
-                        .font(.caption)
+                        .font(Theme.ui(.caption))
                         .foregroundStyle(.secondary)
                 }
                 Text(chat.preview)
-                    .font(.system(.subheadline, design: .serif))
+                    .font(Theme.ui(.subheadline))
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
+                HStack(spacing: 10) {
+                    let questions = chat.messages.filter { $0.role == .user }.count
+                    Label("\(questions)", systemImage: "text.bubble")
+                    let files = chat.messages.reduce(0) { $0 + $1.files.count }
+                    if files > 0 { Label("\(files)", systemImage: "paperclip") }
+                }
+                .labelStyle(TightLabel())
+                .font(Theme.ui(.caption2, .medium))
+                .foregroundStyle(.tertiary)
             }
             .padding(.vertical, 3)
             .contentShape(Rectangle())
@@ -134,8 +156,20 @@ struct ChatsView: View {
             Button { newTitle = chat.displayTitle; renaming = chat } label: { Label("Rename", systemImage: "pencil") }
                 .tint(.gray)
         }
+        .swipeActions(edge: .leading) {
+            Button { app.togglePin(chat.id) } label: {
+                Label(chat.isPinned ? "Unpin" : "Pin", systemImage: chat.isPinned ? "pin.slash" : "pin")
+            }
+            .tint(Theme.violet)
+        }
         .contextMenu {
+            Button { app.togglePin(chat.id) } label: {
+                Label(chat.isPinned ? "Unpin" : "Pin", systemImage: chat.isPinned ? "pin.slash" : "pin")
+            }
             Button { newTitle = chat.displayTitle; renaming = chat } label: { Label("Rename", systemImage: "pencil") }
+            ShareLink(item: chat.markdown, preview: SharePreview(chat.displayTitle)) {
+                Label("Share chat", systemImage: "square.and.arrow.up")
+            }
             Button(role: .destructive) { app.delete(chat.id) } label: { Label("Delete", systemImage: "trash") }
         }
     }

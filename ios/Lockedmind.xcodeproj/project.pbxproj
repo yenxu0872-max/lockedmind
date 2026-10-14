@@ -200,7 +200,10 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Lockedmind;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Lockedmind uses the camera only when you scan a document. The pages are read on this iPhone and never sent anywhere.";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "Face ID unlocks Lockedmind when you have turned on its lock. Lockedmind never sees your face data.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Lockedmind listens only while you dictate a message. Your voice is turned into words on this iPhone and never sent anywhere.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Lockedmind turns your dictation into words using on-device speech recognition only, so your voice never leaves this iPhone.";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -235,7 +238,10 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Lockedmind;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Lockedmind uses the camera only when you scan a document. The pages are read on this iPhone and never sent anywhere.";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "Face ID unlocks Lockedmind when you have turned on its lock. Lockedmind never sees your face data.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Lockedmind listens only while you dictate a message. Your voice is turned into words on this iPhone and never sent anywhere.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Lockedmind turns your dictation into words using on-device speech recognition only, so your voice never leaves this iPhone.";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

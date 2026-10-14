@@ -1,10 +1,18 @@
 # Lockedmind for iPhone
 
 Private AI that runs entirely on the iPhone, designed as a private journal kept by a living
-mind: questions in bold, answers in serif joined by a thread of light, an orb that glows while it
-thinks, and an optional Face ID lock. Answers come from Apple's on-device model
-(the Foundation Models framework, part of Apple Intelligence); the app has no networking
-code, no account and no analytics, and works in Airplane Mode.
+mind: Geist type on warm paper, questions joined to answers by a thread of light, and the logo
+(a violet-to-sky orb with a keyhole lit from inside) glowing while it thinks. Answers come from
+Apple's on-device model (the Foundation Models framework, part of Apple Intelligence). The app
+never connects to the internet (it only watches whether the iPhone is online, to show it), has
+no account and no analytics, and works in Airplane Mode.
+
+Features: streaming answers with stop, regenerate, copy, share and read aloud; follow-up
+suggestions; edit a question and ask again; photos, document scans and PDF/text files read on
+the device (iOS 27 can also look at photos); on-device dictation; chat search, pin, rename,
+share, export and delete; answer length, tone and creativity; "about you"; a memory meter and a
+marker where older messages fall out of the model's memory; online/offline badge; Face ID lock;
+chats kept out of backups unless chosen.
 
 - **Needs:** iPhone 15 Pro or newer (any iPhone with Apple Intelligence), iOS 26+, Apple Intelligence on.
 - **Built with:** SwiftUI, Swift 5 language mode, no third-party code. Xcode 26 or later.
@@ -18,11 +26,16 @@ code, no account and no analytics, and works in Airplane Mode.
 | `Lockedmind/AppModel.swift` | The open chat, sending, stopping, regenerating, titles. |
 | `Lockedmind/Library.swift` | Chats on disk: one JSON file, iOS data protection, left out of backups unless the person opts in. |
 | `Lockedmind/Lock.swift` | The optional Face ID lock (LocalAuthentication; iOS does the checking). |
+| `Lockedmind/Attachments.swift` | Photos, scans and files: read on the device (Vision text recognition, PDFKit), the document camera. |
+| `Lockedmind/Speech.swift` | On-device dictation (refuses rather than use server recognition) and read-aloud. |
+| `Lockedmind/Connection.swift` | The online/offline badge (Network path monitoring; sends nothing). |
+| `Lockedmind/Fonts/` | Geist and Geist Mono (SIL Open Font License), loaded at launch. |
 | `Lockedmind/*View.swift`, `Markdown.swift`, `Theme.swift` | The screens; the serif reply renderer; the living orb, the glow, the paper colours. |
 | `Lockedmind/PreviewHarness.swift` | Scripted test runs; only compiled with the `PREVIEW` flag. |
 | `AppStore/LISTING.md` | Everything App Store Connect asks for, ready to paste. |
 | `AppStore/screenshots/` | Six 1320 × 2868 screenshots for the 6.9-inch iPhone, from the Simulator. |
-| `tools/` | `preview.sh` (run the app on the Mac without Xcode), `screenshots.sh` (Simulator → App Store pictures), `frame.py`, `makeicon.swift`. |
+| `AppStore/Logo.png` | The logo on a transparent background, 1024 px. |
+| `tools/` | `screenshots.sh` (Simulator → App Store pictures, with `shots.txt`, `samples.py`, `frame.swift`), `makeicon.swift` (the icon and logo). |
 
 The privacy policy and support pages the App Store needs are `web/app/privacy.html` and
 `web/app/support.html`; they go live with the website.
@@ -37,8 +50,8 @@ The privacy policy and support pages the App Store needs are `web/app/privacy.ht
    to add one). Turn on Developer Mode on the phone when asked. With a free Apple ID the app
    runs for 7 days before it needs re-installing from Xcode.
 
-No Xcode? `tools/preview.sh build` builds the same code as a Mac app with only the Command Line
-Tools, and `tools/preview.sh run tools/shots.txt OUTDIR` runs the scripted tour.
+To test without tapping: build with `SWIFT_ACTIVE_COMPILATION_CONDITIONS='DEBUG PREVIEW'` and launch
+with `SIMCTL_CHILD_LM_SCRIPT=<script>`; `PreviewHarness.swift` lists the script commands.
 
 ## Put it on the App Store
 

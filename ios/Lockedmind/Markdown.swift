@@ -98,12 +98,18 @@ enum Markdown {
         }
         let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace,
                                                               failurePolicy: .returnPartiallyParsedIfPossible)
-        return (try? AttributedString(markdown: source, options: options)) ?? AttributedString(text)
+        guard var out = try? AttributedString(markdown: source, options: options) else { return AttributedString(text) }
+        // Inline code in Geist Mono, on a faint wash.
+        for run in out.runs where run.inlinePresentationIntent?.contains(.code) == true {
+            out[run.range].font = Theme.mono(.callout, .medium)
+            out[run.range].backgroundColor = Theme.violet.opacity(0.12)
+        }
+        return out
     }
 }
 
-/// A reply, drawn like a page of a letter: serif text, the orb's colours
-/// for bullets and step numbers.
+/// A reply, drawn like a page: Geist text, the orb's colours for bullets and
+/// step numbers, Geist Mono for code.
 struct MarkdownView: View {
     let text: String
 
@@ -122,7 +128,7 @@ struct MarkdownView: View {
         switch block {
         case .heading(let level, let text):
             Text(Markdown.inline(text))
-                .font(.system(level <= 2 ? .title3 : .headline, design: .serif).weight(.semibold))
+                .font(Theme.ui(level <= 2 ? .title3 : .headline, .semibold))
                 .padding(.top, 6)
                 .accessibilityAddTraits(.isHeader)
         case .paragraph(let text):
@@ -132,7 +138,7 @@ struct MarkdownView: View {
                 ForEach(Array(items.enumerated()), id: \.offset) { _, item in
                     HStack(alignment: .firstTextBaseline, spacing: 9) {
                         Text(item.marker)
-                            .font(.system(.body, design: .rounded).weight(item.marker == "•" ? .black : .bold))
+                            .font(Theme.ui(.body, item.marker == "•" ? .black : .bold))
                             .monospacedDigit()
                             .foregroundStyle(Theme.orb)
                             .frame(minWidth: 18, alignment: .trailing)
@@ -164,7 +170,7 @@ struct CodeBlock: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 Text(language.isEmpty ? "code" : language.lowercased())
-                    .font(.system(.caption, design: .monospaced).weight(.medium))
+                    .font(Theme.mono(.caption, .medium))
                     .foregroundStyle(.secondary)
                 Spacer()
                 Button {
@@ -173,7 +179,7 @@ struct CodeBlock: View {
                     Task { try? await Task.sleep(for: .seconds(1.5)); copied = false }
                 } label: {
                     Label(copied ? "Copied" : "Copy", systemImage: copied ? "checkmark" : "doc.on.doc")
-                        .font(.caption)
+                        .font(Theme.ui(.caption, .medium))
                 }
                 .buttonStyle(.borderless)
                 .foregroundStyle(.secondary)
@@ -183,7 +189,7 @@ struct CodeBlock: View {
             Divider()
             ScrollView(.horizontal, showsIndicators: false) {
                 Text(code)
-                    .font(.system(.footnote, design: .monospaced))
+                    .font(Theme.mono(.footnote))
                     .textSelection(.enabled)
                     .padding(12)
             }

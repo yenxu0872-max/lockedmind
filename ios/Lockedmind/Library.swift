@@ -1,10 +1,39 @@
 // The chats, and where they are kept: one JSON file in the app's own
 // Application Support folder, written atomically and locked by iOS data
-// protection. By default it is also left out of iCloud and computer backups,
-// so a chat exists only on this iPhone (Settings can let it into backups).
+// protection, with attached pictures in a folder beside it. By default both
+// are left out of iCloud and computer backups, so a chat exists only on this
+// iPhone (Settings can let them into backups).
+//
+// Every field added after the first version is optional, so older saved
+// chats still open.
 
 import Foundation
 import Observation
+
+/// A photo, a scanned document or a file the person attached to a message.
+/// Everything in it was read on the iPhone.
+struct Attachment: Identifiable, Codable, Equatable, Sendable {
+    enum Kind: String, Codable, Sendable { case photo, scan, file }
+
+    var id = UUID()
+    var kind: Kind
+    var name: String
+    /// Text read from it: the words in a photo or scan, or the file's own text.
+    var text: String
+    /// True if the text was cut to fit the model's memory.
+    var shortened: Bool? = nil
+    /// The picture (a photo, or a scan's first page), stored beside the chats.
+    var imageFile: String? = nil
+    var pages: Int? = nil
+
+    var symbol: String {
+        switch kind {
+        case .photo: "photo"
+        case .scan: "doc.viewfinder"
+        case .file: name.lowercased().hasSuffix(".pdf") ? "doc.richtext" : "doc.text"
+        }
+    }
+}
 
 struct Message: Identifiable, Codable, Equatable, Sendable {
     enum Role: String, Codable, Sendable { case user, assistant }
@@ -18,6 +47,13 @@ struct Message: Identifiable, Codable, Equatable, Sendable {
     var problem: String? = nil
     /// How long the reply took to write, in seconds.
     var seconds: Double? = nil
+    var attachments: [Attachment]? = nil
+    /// Questions the person might ask next, offered under the last answer.
+    var followUps: [String]? = nil
+
+    var files: [Attachment] { attachments ?? [] }
+
+    var words: Int { text.split(whereSeparator: { $0.isWhitespace || $0.isNewline }).count }
 }
 
 struct Chat: Identifiable, Codable, Equatable, Sendable {
@@ -26,11 +62,17 @@ struct Chat: Identifiable, Codable, Equatable, Sendable {
     var messages: [Message] = []
     var created = Date()
     var updated = Date()
+    var pinnedAt: Date? = nil
+    /// True once the person has named the chat themselves.
+    var named: Bool? = nil
+
+    var isPinned: Bool { pinnedAt != nil }
 
     var displayTitle: String {
         if !title.isEmpty { return title }
-        guard let first = messages.first(where: { $0.role == .user })?.text else { return "New chat" }
-        return Self.shorten(first, to: 40)
+        guard let first = messages.first(where: { $0.role == .user }) else { return "New chat" }
+        if first.text.isEmpty, let file = first.files.first { return file.name }
+        return Self.shorten(first.text, to: 40)
     }
 
     /// The last thing said, for the chat list.
@@ -53,49 +95,102 @@ struct Chat: Identifiable, Codable, Equatable, Sendable {
         let word = cut.lastIndex(of: " ").map { cut[..<$0] } ?? cut
         return word.trimmingCharacters(in: .punctuationCharacters.union(.whitespaces)) + "…"
     }
+
+    /// The whole chat as Markdown, for sharing or saving.
+    var markdown: String {
+        var out = "# \(displayTitle)\n\n"
+        for m in messages {
+            switch m.role {
+            case .user:
+                out += "**You** · \(m.date.formatted(date: .abbreviated, time: .shortened))\n\n\(m.text)\n"
+                for a in m.files { out += "\n_Attached: \(a.name)_\n" }
+                out += "\n"
+            case .assistant:
+                guard m.problem == nil, !m.text.isEmpty else { continue }
+                out += "**Lockedmind** · written on iPhone\n\n\(m.text)\n\n"
+            }
+        }
+        return out + "---\nMade with Lockedmind, private AI that runs on iPhone.\n"
+    }
 }
 
 @MainActor @Observable
 final class Library {
-    /// Newest first.
+    /// Pinned first, then newest first.
     private(set) var chats: [Chat] = []
 
+    @ObservationIgnored let base: URL
     @ObservationIgnored private let file: URL
+    @ObservationIgnored let pictures: URL
     @ObservationIgnored private var pending: Task<Void, Never>?
 
     static let backupsKey = "includeInBackups"
 
     init(folder: URL? = nil) {
-        let base = folder ?? URL.applicationSupportDirectory.appending(path: "Lockedmind", directoryHint: .isDirectory)
+        base = folder ?? URL.applicationSupportDirectory.appending(path: "Lockedmind", directoryHint: .isDirectory)
         file = base.appending(path: "chats.json")
-        try? FileManager.default.createDirectory(at: base, withIntermediateDirectories: true)
+        pictures = base.appending(path: "attachments", directoryHint: .isDirectory)
+        try? FileManager.default.createDirectory(at: pictures, withIntermediateDirectories: true)
         load()
     }
 
     func chat(_ id: UUID) -> Chat? { chats.first { $0.id == id } }
 
+    func imageURL(_ attachment: Attachment) -> URL? {
+        attachment.imageFile.map { pictures.appending(path: $0) }
+    }
+
     /// Adds or replaces a chat and saves soon after. Empty chats are never kept.
     func put(_ chat: Chat) {
         guard !chat.messages.isEmpty else { return }
         if let i = chats.firstIndex(where: { $0.id == chat.id }) { chats[i] = chat } else { chats.append(chat) }
-        chats.sort { $0.updated > $1.updated }
+        sort()
         saveSoon()
     }
 
     func rename(_ id: UUID, to title: String) {
         guard let i = chats.firstIndex(where: { $0.id == id }) else { return }
         chats[i].title = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        chats[i].named = true
+        saveSoon()
+    }
+
+    func togglePin(_ id: UUID) {
+        guard let i = chats.firstIndex(where: { $0.id == id }) else { return }
+        chats[i].pinnedAt = chats[i].isPinned ? nil : .now
+        sort()
         saveSoon()
     }
 
     func delete(_ id: UUID) {
+        if let chat = chat(id) { removePictures(of: chat.messages) }
         chats.removeAll { $0.id == id }
         saveSoon()
     }
 
     func deleteAll() {
         chats.removeAll()
+        try? FileManager.default.removeItem(at: pictures)
+        try? FileManager.default.createDirectory(at: pictures, withIntermediateDirectories: true)
         saveNow()
+    }
+
+    /// Forgets pictures that belonged to messages being removed.
+    func removePictures(of messages: [Message]) {
+        for a in messages.flatMap(\.files) {
+            if let url = imageURL(a) { try? FileManager.default.removeItem(at: url) }
+        }
+    }
+
+    private func sort() {
+        chats.sort { a, b in
+            switch (a.pinnedAt, b.pinnedAt) {
+            case let (x?, y?): x > y
+            case (.some, nil): true
+            case (nil, .some): false
+            default: a.updated > b.updated
+            }
+        }
     }
 
     // MARK: Disk
@@ -108,7 +203,8 @@ final class Library {
     private func load() {
         guard let data = try? Data(contentsOf: file) else { return }
         do {
-            chats = try JSONDecoder.lockedmind.decode(Saved.self, from: data).chats.sorted { $0.updated > $1.updated }
+            chats = try JSONDecoder.lockedmind.decode(Saved.self, from: data).chats
+            sort()
         } catch {
             // Never throw a damaged file away: put it aside and start afresh.
             let aside = file.deletingLastPathComponent()
@@ -138,13 +234,16 @@ final class Library {
         }
     }
 
-    /// Chats stay out of iCloud and computer backups unless the person lets them in.
+    /// Chats and their pictures stay out of iCloud and computer backups
+    /// unless the person lets them in.
     func applyBackupChoice() {
         let include = UserDefaults.standard.bool(forKey: Self.backupsKey)
-        var values = URLResourceValues()
-        values.isExcludedFromBackup = !include
-        var url = file
-        try? url.setResourceValues(values)
+        for target in [file, pictures] {
+            var values = URLResourceValues()
+            values.isExcludedFromBackup = !include
+            var url = target
+            try? url.setResourceValues(values)
+        }
     }
 }
 

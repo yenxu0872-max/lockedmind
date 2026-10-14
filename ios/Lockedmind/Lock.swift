@@ -63,19 +63,20 @@ final class Guard {
     }
 }
 
-/// Shown while locked, and over the app in the app switcher.
+/// Shown while locked, and over the app in the app switcher: the logo's
+/// keyhole, glowing, and one button.
 struct LockScreen: View {
     let unlock: (() -> Void)?
 
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
-            LivingOrb(size: 112, mood: .resting, dot: false, glyph: "lock.fill")
+            LivingOrb(size: 118, mood: .ready)
             Text("Locked")
-                .font(.system(.largeTitle, design: .serif).weight(.medium))
-                .padding(.top, 48)
+                .font(Theme.ui(.largeTitle, .bold))
+                .padding(.top, 50)
             Text("Your chats stay hidden until you unlock.")
-                .font(Theme.answer)
+                .font(Theme.ui(.body))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.top, 8)
@@ -91,7 +92,6 @@ struct LockScreen: View {
         }
         .padding(.horizontal, 32)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(alignment: .bottom) { Aurora(energy: 0.45).ignoresSafeArea() }
-        .background(Theme.paper.ignoresSafeArea())
+        .background { Paper(energy: 0.45) }
     }
 }

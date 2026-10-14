@@ -1,10 +1,12 @@
-// Only in builds made with the PREVIEW flag (tools/preview.sh on the Mac,
-// tools/screenshots.sh in the Simulator); compiles to nothing in the real app.
+// Only in builds made with the PREVIEW flag (tools/screenshots.sh, or by hand
+// in the Simulator); compiles to nothing in the real app.
 // Keeps data in a scratch folder (LM_DATA) and follows a small script
 // (LM_SCRIPT) so screens can be checked and captured automatically.
 //
 // Script lines: wait 2 · send Hello · idle · shot name · new · open · log ·
-// light · dark · welcome show|done · screen chats|settings|none · quit
+// light · dark · welcome show|done · screen chats|settings|locked|none ·
+// chats · set KEY true|false · photo PATH · file PATH · ask Words ·
+// edit Words · speak · hush · pin · offline · online · quit
 //
 // `shot` draws the window into LM_OUT/name.png; with LM_SHOTS=external it
 // instead leaves LM_OUT/name.ready and waits for the script outside to take
@@ -16,6 +18,9 @@ import UIKit
 
 struct PreviewHarness: ViewModifier {
     let model: AppModel
+    let connection: Connection
+    let speaker: Speaker
+    let dictation: Dictation
     static let showChats = Notification.Name("preview.showChats")
     /// Screens shown over everything: on the Mac, sheets open as separate
     /// windows that a snapshot can't see, so they are shown here instead.
@@ -42,6 +47,10 @@ struct PreviewHarness: ViewModifier {
                 .background(screen.isEmpty ? Color.clear : Theme.paper)
                 .environment(model)
                 .environment(Guard())
+                .environment(connection)
+                .environment(speaker)
+                .environment(dictation)
+                .font(Theme.ui(.body))
             }
             .task { await run() }
     }
@@ -83,6 +92,24 @@ struct PreviewHarness: ViewModifier {
             case "chats": NotificationCenter.default.post(name: Self.showChats, object: nil)
             case "welcome": UserDefaults.standard.set(rest == "done", forKey: "welcomed")
             case "new": model.newChat()
+            case "speak": if let m = model.current.messages.last(where: { $0.role == .assistant }) { speaker.toggle(m) }
+            case "hush": speaker.stop()
+            case "pin": model.togglePin(model.current.id)
+            case "edit":       // edit NEW WORDS — change the last question and ask again
+                if let q = model.current.messages.last(where: { $0.role == .user }) {
+                    _ = model.beginEdit(q)
+                    model.send(rest)
+                }
+            case "offline": connection.forced = false
+            case "online": connection.forced = true
+            case "photo":      // photo PATH — attach a picture from the Mac
+                if let data = FileManager.default.contents(atPath: rest) {
+                    try? await model.addPhoto(data, name: URL(fileURLWithPath: rest).lastPathComponent)
+                }
+            case "file": model.addFile(URL(fileURLWithPath: rest))
+            case "ask":        // send what's attached, with these words
+                while model.reading > 0 { try? await Task.sleep(for: .milliseconds(100)) }
+                model.send(rest)
             case "set":
                 let kv = rest.split(separator: " ").map(String.init)
                 if kv.count == 2 { UserDefaults.standard.set(kv[1] == "true", forKey: kv[0]) }

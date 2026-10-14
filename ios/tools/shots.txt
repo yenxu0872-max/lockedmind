@@ -1,33 +1,46 @@
 set faceLock false
+set followUps true
+online
 welcome show
 light
 wait 3
-shot raw-6-welcome
+shot raw-7-welcome
 welcome done
 wait 2
 shot raw-1-start
-send Help me write a friendly message turning down an invitation to a party this weekend.
+send Give me three quick tips for sleeping better.
 idle
-shot raw-3-message
+wait 6
+shot raw-2-answer
+new
+photo PHOTO
+wait 1
+ask What do I need to do on Thursday?
+idle
+wait 6
+shot raw-3-photo
+new
+file PDF
+wait 1
+ask What happens if I pay rent late, and how do I end this lease?
+idle
+wait 6
+offline
+wait 1
+shot raw-4-offline
+online
 new
 send Give me 8 thoughtful birthday gift ideas for a friend who loves cooking and hiking.
 idle
 new
-send Should I learn Python or JavaScript first?
-idle
-new
 send Explain how compound interest works, simply, with a quick example.
 idle
-new
-send Help me plan a balanced week: I work 9 to 5, want to exercise three times and cook at home more.
-idle
-shot raw-2-answer
-log
+wait 3
 screen locked
 wait 1.5
-shot raw-4-locked
+shot raw-5-locked
 screen none
 chats
-wait 1.8
-shot raw-5-chats
+wait 2
+shot raw-6-chats
 quit
