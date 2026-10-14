@@ -95,7 +95,23 @@ The interface is the v3 design (drawn under the app's first name, Oriel), rebuil
 - **Your chats** live on disk (see below), survive everything, and can be searched — titles and
   everything said in them.
 - **Light and dark** — follows the Mac, or pick one in Settings.
-- **Settings** — your name, answer length, custom instructions, appearance.
+- **Settings** — your name, answer length, tone (warm, professional, playful, direct), creativity
+  (precise, balanced, creative), custom instructions, appearance.
+- **Online or offline** — a badge beside the model's name says whether the Mac is online, and that it
+  doesn't matter: "Online · nothing sent", "Online · Search on", or "Offline · still works". Click it
+  for what that means.
+- **Read aloud** — the speaker button under any answer reads it with the Mac's own voices.
+- **Every answer is signed** "On this Mac · 9.2 s · 43 words": where it was written, how long it took.
+- **Lock with Touch ID** (Lockedmind menu, off until you turn it on; ⌃⌘L locks now) — the chats hide when
+  the Mac sleeps or locks, when the app is hidden or minimised, or after five minutes away, and come back
+  with Touch ID or the Mac's password.
+
+The logo is the **keyhole orb** (since October 2026; it was a dot on the orb's shoulder):
+`ui/_design/logo.svg` is the source for the pages and their tab icons, `native/makeicon.swift` draws the
+Mac icon, and `ios/tools/makeicon.swift` the iPhone icon.
+
+**Lockedmind for iPhone** is in `ios/`: a native app on Apple's own on-device model, with its App
+Store listing and screenshots. See `ios/README.md`.
 
 ### Memory
 

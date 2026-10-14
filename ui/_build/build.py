@@ -17,6 +17,7 @@ Steps, in order:
 """
 import html
 import json
+import urllib.parse
 import math
 import re
 import shutil
@@ -179,6 +180,32 @@ CODE_BLOCK = (
     '<pre style="margin:0;padding:12px 14px;overflow-x:auto;font-family:\'Geist Mono\',ui-monospace,monospace;'
     'font-size:13px;line-height:1.6;tab-size:4"><code><sc-for list="{{ p.tokens }}" as="tk">'
     '<span style="color:{{ tk.c }}">{{ tk.t }}</span></sc-for></code></pre></div></sc-if>')
+
+# Under the chat's model name: whether this device is online, and that it doesn't matter.
+CONNECTION = (
+    '<button onClick="{{ explainConn }}" title="{{ connTitle }}" style="display:flex;align-items:center;gap:7px;height:30px;'
+    'margin-left:4px;padding:0 11px;border-radius:999px;border:1px solid #e8e8ec;background:#fff;font-family:inherit;'
+    'font-size:12.5px;font-weight:500;color:#6b6b66;cursor:pointer;white-space:nowrap" style-hover="background:#f4f4f7;color:#1d1d1b">'
+    '<span style="width:7px;height:7px;border-radius:999px;background:{{ connDot }};box-shadow:0 0 0 3px {{ connHalo }}"></span>'
+    '{{ connLabel }}</button>')
+
+# Beside Copy under each answer: read it aloud with this device's own voices.
+SPEAK = (
+    '<button onClick="{{ m.speak }}" title="{{ m.speakTitle }}" style="width:30px;height:30px;border:0;background:transparent;'
+    'border-radius:8px;color:#6b6b66;cursor:pointer;display:flex;align-items:center;justify-content:center" '
+    'style-hover="background:#f2f2f5;color:#1d1d1b">'
+    '<sc-if value="{{ m.notSpeaking }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5Z"></path>'
+    '<path d="M15.5 8.5a5 5 0 0 1 0 7"></path><path d="M19 5a10 10 0 0 1 0 14"></path></svg></sc-if>'
+    '<sc-if value="{{ m.speaking }}"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none">'
+    '<rect x="6" y="6" width="12" height="12" rx="2"></rect></svg></sc-if></button>')
+
+# At the end of each answer's actions: where it was written, how long it took, how long it is.
+SEAL = ('<span style="margin-left:8px;display:flex;align-items:center;gap:5px;font-size:12px;color:#8a8a84;'
+        'font-variant-numeric:tabular-nums;white-space:nowrap">'
+        '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" '
+        'stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"></rect>'
+        '<path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>{{ m.seal }}</span>')
 
 MEMORY_NOTE = (
     '<sc-if value="{{ hasMemoryNote }}">'
@@ -393,6 +420,25 @@ tpl = insert_after_block(tpl, '<button onClick="{{ copyCanvas }}"', "button",
                          export_menu("toggleExportCanvas", "exportCanvasOpen", "exportCanvasOptions", 34),
                          "canvas Export menu")
 
+# the online badge, after the model menu in the header
+i = tpl.find('<button onClick="{{ toggleModelMenu }}"')
+i = tpl.rfind('<div style="position:relative">', 0, i)
+j = match_close(tpl, i, "div")
+tpl = tpl[:j] + CONNECTION + tpl[j:]
+print("  inserted online/offline badge")
+
+# (the answer's own Copy button: the first one in the page belongs to the question)
+i = tpl.find('<button onClick="{{ m.copy }}"', tpl.find('<sc-if value="{{ m.done }}">'))
+j = match_close(tpl, i, "button")
+tpl = tpl[:j] + SPEAK + tpl[j:]
+print("  inserted read-aloud button")
+i = tpl.find('<button onClick="{{ regenerate }}"')
+i = tpl.rfind('<sc-if value="{{ m.isLast }}">', 0, i)
+j = match_close(tpl, i, "sc-if")
+tpl = tpl[:j] + SEAL + tpl[j:]
+print("  inserted answer seal (on this device · seconds · words)")
+
+
 # Settings → Appearance, cloned from the design's own Response length picker
 i = tpl.find('<span style="font-size:14px;font-weight:500">Response length</span>')
 start = tpl.rfind("<div", 0, i)
@@ -401,6 +447,19 @@ appearance = (tpl[start:end].replace("Response length", "Appearance").replace("{
               .replace('as="st"', 'as="th"').replace("{{ st.", "{{ th."))
 tpl = tpl[:end] + appearance + tpl[end:]
 print("  inserted Appearance setting")
+
+# (after Appearance, so they sit between Response length and Appearance)
+# Settings → Tone and Creativity, cloned from the Response length picker
+i = tpl.find('<span style="font-size:14px;font-weight:500">Response length</span>')
+start = tpl.rfind("<div", 0, i)
+end = match_close(tpl, start, "div")
+picker = tpl[start:end]
+tone = (picker.replace("Response length", "Tone").replace("{{ styles }}", "{{ tones }}")
+        .replace('as="st"', 'as="tn"').replace("{{ st.", "{{ tn."))
+creative = (picker.replace("Response length", "Creativity").replace("{{ styles }}", "{{ creativities }}")
+            .replace('as="st"', 'as="cr"').replace("{{ st.", "{{ cr."))
+tpl = tpl[:end] + tone + creative + tpl[end:]
+print("  inserted Tone and Creativity settings")
 
 tpl = must_replace(tpl, '<sc-for list="{{ messages }}" as="m">',
                    (LOAD_NOTE if WEB else "") + MEMORY_NOTE + '<sc-for list="{{ messages }}" as="m">', "memory notice", count=1)
@@ -429,10 +488,8 @@ if WEB:
     WEB_CONFIG = json.dumps({"webllm": json.loads((SITE / "models.json").read_text())["engine"]["webllm"],
                              "models": "models.json", "worker": "engine-worker.js", "browse": "../models.html"})
 
-icon = ("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E"
-        "%3Ccircle cx='16' cy='16' r='14' fill='%2317171a'/%3E"
-        "%3Ccircle cx='15' cy='17' r='8' fill='%237b8cf5'/%3E"
-        "%3Ccircle cx='22.5' cy='9.5' r='3.6' fill='%23fff' stroke='%2317171a' stroke-width='1.6'/%3E%3C/svg%3E")
+# The logo, the keyhole orb (it was a dot on a dark disc until October 2026); ui/_design/logo.svg
+icon = "data:image/svg+xml," + urllib.parse.quote((UI / "_design" / "logo.svg").read_text().strip(), safe="/:='")
 # theme applied before first paint, so a dark-mode user never sees a white flash
 early_theme = ("<script>try{var t=localStorage.getItem('oriel-theme');"
                "if(t==='Dark')document.documentElement.dataset.theme='dark';"

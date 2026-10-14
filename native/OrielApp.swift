@@ -7,12 +7,16 @@
 //   - gives the page what a browser tab can't: a menu bar (⌘N, ⌘,), the
 //     microphone for dictation, the system file picker, and links that open
 //     in your browser instead of inside the app
-//   - frees the model's memory when you quit.
+//   - frees the model's memory when you quit
+//   - can lock itself (Lockedmind menu › Lock with Touch ID): the chats hide
+//     when the Mac sleeps or locks, when the app is hidden or minimised, or
+//     after five minutes away, and come back with Touch ID or the password.
 //
 // Built by `oriel app` / `oriel install` with swiftc — no Xcode needed.
 
 import AppKit
 import WebKit
+import LocalAuthentication
 
 let port = 7171
 let home = URL(string: "http://127.0.0.1:\(port)/")!
@@ -48,14 +52,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, WKNa
     var retry: NSButton!
     var spawned: Process?            // a server we started ourselves (no login item)
     var connecting = false
+    var lockView: NSVisualEffectView!
+    var lockItem: NSMenuItem!
+    var locked = false
+    var asking = false
+    var awaySince: Date?
+    static let lockKey = "lockWithTouchID"
+    var lockOn: Bool { UserDefaults.standard.bool(forKey: Self.lockKey) }
 
     // MARK: launch
 
     func applicationDidFinishLaunching(_ note: Notification) {
         buildMenu()
         buildWindow()
+        watchForLocking()
+        if lockOn { setLocked(true) }
         connect()
     }
+
+    func applicationDidResignActive(_ note: Notification) { awaySince = Date() }
+
+    func applicationDidBecomeActive(_ note: Notification) {
+        // Five minutes away is long enough to lock.
+        if lockOn, let away = awaySince, Date().timeIntervalSince(away) > 300 { setLocked(true) }
+        awaySince = nil
+        if locked { unlock() }
+    }
+
+    func applicationDidHide(_ note: Notification) { lockIfOn() }
+    func windowDidMiniaturize(_ note: Notification) { lockIfOn() }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ app: NSApplication) -> Bool { true }
 
@@ -103,6 +128,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, WKNa
         root.addSubview(strip)
 
         buildCover(in: root)
+        buildLock(in: root)
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
     }
@@ -297,6 +323,106 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, WKNa
         alert.beginSheetModal(for: window) { completionHandler($0 == .alertFirstButtonReturn) }
     }
 
+    // MARK: the lock
+
+    /// What this Mac unlocks with, for the menu and the button.
+    var unlockName: String {
+        let context = LAContext()
+        _ = context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil)
+        return context.biometryType == .touchID ? "Touch ID" : "Password"
+    }
+
+    /// The screen over everything while locked: the logo, a word, one button.
+    func buildLock(in root: NSView) {
+        lockView = NSVisualEffectView(frame: root.bounds)
+        lockView.autoresizingMask = [.width, .height]
+        lockView.material = .underWindowBackground
+        lockView.blendingMode = .withinWindow
+        lockView.state = .active
+        lockView.isHidden = true
+        let icon = NSImageView(image: NSApp.applicationIconImage)
+        icon.imageScaling = .scaleProportionallyUpOrDown
+        let title = NSTextField(labelWithString: "Locked")
+        title.font = .systemFont(ofSize: 26, weight: .bold)
+        let text = NSTextField(labelWithString: "Your chats stay hidden until you unlock.")
+        text.font = .systemFont(ofSize: 14)
+        text.textColor = .secondaryLabelColor
+        let button = NSButton(title: "Unlock with \(unlockName)", target: self, action: #selector(unlockPressed))
+        button.bezelStyle = .rounded
+        button.controlSize = .large
+        button.keyEquivalent = "\r"
+        let stack = NSStackView(views: [icon, title, text, button])
+        stack.orientation = .vertical
+        stack.alignment = .centerX
+        stack.spacing = 10
+        stack.setCustomSpacing(22, after: icon)
+        stack.setCustomSpacing(26, after: text)
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        lockView.addSubview(stack)
+        NSLayoutConstraint.activate([
+            icon.widthAnchor.constraint(equalToConstant: 112), icon.heightAnchor.constraint(equalToConstant: 112),
+            stack.centerXAnchor.constraint(equalTo: lockView.centerXAnchor),
+            stack.centerYAnchor.constraint(equalTo: lockView.centerYAnchor, constant: -10),
+        ])
+        root.addSubview(lockView, positioned: .below, relativeTo: strip)
+    }
+
+    func watchForLocking() {
+        let ws = NSWorkspace.shared.notificationCenter
+        for name in [NSWorkspace.screensDidSleepNotification, NSWorkspace.willSleepNotification, NSWorkspace.sessionDidResignActiveNotification] {
+            ws.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.lockIfOn() }
+            }
+        }
+        DistributedNotificationCenter.default().addObserver(forName: .init("com.apple.screenIsLocked"), object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.lockIfOn() }
+        }
+    }
+
+    func lockIfOn() { if lockOn { setLocked(true) } }
+
+    func setLocked(_ on: Bool) {
+        locked = on
+        lockView.isHidden = !on
+        if on { window.makeFirstResponder(nil) }
+    }
+
+    @objc func unlockPressed() { unlock() }
+
+    /// Asks macOS to check it's the owner: Touch ID, or the password.
+    func unlock() {
+        guard locked, !asking else { return }
+        let context = LAContext()
+        var error: NSError?
+        guard context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) else {
+            setLocked(false)          // nothing to check against: never shut someone out of their own chats
+            return
+        }
+        asking = true
+        context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: "unlock your chats") { ok, _ in
+            DispatchQueue.main.async {
+                MainActor.assumeIsolated {
+                    self.asking = false
+                    if ok { self.setLocked(false) }
+                }
+            }
+        }
+    }
+
+    @objc func toggleLock(_ sender: NSMenuItem) {
+        let on = !lockOn
+        UserDefaults.standard.set(on, forKey: Self.lockKey)
+        sender.state = on ? .on : .off
+    }
+
+    @objc func lockNow(_ sender: Any?) {
+        if !lockOn {
+            UserDefaults.standard.set(true, forKey: Self.lockKey)
+            lockItem.state = .on
+        }
+        setLocked(true)
+    }
+
     // MARK: the strip under the traffic lights
 
     /// Keep the page's reserved strip exactly as tall as the native one at any
@@ -342,10 +468,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate, WKNa
             i.keyEquivalentModifierMask = mods
             return i
         }
+        lockItem = item("Lock with \(unlockName)", #selector(toggleLock(_:)))
+        lockItem.state = lockOn ? .on : .off
         _ = menu("Lockedmind", [
             item("About Lockedmind", #selector(NSApplication.orderFrontStandardAboutPanel(_:))),
             .separator(),
             item("Settings…", #selector(openSettings(_:)), ","),
+            .separator(),
+            lockItem,
+            item("Lock Now", #selector(lockNow(_:)), "l", [.command, .control]),
             .separator(),
             item("Hide Lockedmind", #selector(NSApplication.hide(_:)), "h"),
             item("Hide Others", #selector(NSApplication.hideOtherApplications(_:)), "h", [.command, .option]),

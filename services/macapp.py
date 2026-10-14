@@ -75,7 +75,7 @@ def build_app():
     macos, res = staged / "Contents" / "MacOS", staged / "Contents" / "Resources"
     macos.mkdir(parents=True)
     res.mkdir(parents=True)
-    _run(SWIFTC + ["-parse-as-library", "-framework", "AppKit", "-framework", "WebKit",
+    _run(SWIFTC + ["-parse-as-library", "-framework", "AppKit", "-framework", "WebKit", "-framework", "LocalAuthentication",
                    str(HERE / "native" / "OrielApp.swift"), "-o", str(macos / APP_NAME)])
     _icon(res)
     with (staged / "Contents" / "Info.plist").open("wb") as f:
