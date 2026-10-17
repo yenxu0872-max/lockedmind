@@ -137,10 +137,10 @@ DL_ICON = ('<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="
 def export_menu(toggle, is_open, options, height):
     return (
         f'<div style="position:relative">'
-        f'<button onClick="{{{{ {toggle} }}}}" title="Save to Downloads" style="display:flex;align-items:center;gap:7px;'
+        f'<button onClick="{{{{ {toggle} }}}}" title="Save to Downloads" aria-label="Export" class="bar-btn" style="display:flex;align-items:center;gap:7px;'
         f'height:{height}px;padding:0 12px;border-radius:999px;border:1px solid #e8e8ec;background:transparent;'
         f'font-family:inherit;font-size:13px;font-weight:500;color:#1d1d1b;cursor:pointer" style-hover="background:#f4f4f7">'
-        f'{DL_ICON} Export</button>'
+        f'{DL_ICON} <span class="bar-label">Export</span></button>'
         f'<sc-if value="{{{{ {is_open} }}}}">'
         f'<div onClick="{{{{ closeMenus }}}}" style="position:fixed;inset:0;z-index:30"></div>'
         f'<div style="{MENU}">'
@@ -183,11 +183,35 @@ CODE_BLOCK = (
 
 # Under the chat's model name: whether this device is online, and that it doesn't matter.
 CONNECTION = (
-    '<button onClick="{{ explainConn }}" title="{{ connTitle }}" style="display:flex;align-items:center;gap:7px;height:30px;'
+    '<button onClick="{{ explainConn }}" title="{{ connTitle }}" aria-label="{{ connLabel }}" class="bar-btn" style="display:flex;align-items:center;gap:7px;height:30px;'
     'margin-left:4px;padding:0 11px;border-radius:999px;border:1px solid #e8e8ec;background:#fff;font-family:inherit;'
     'font-size:12.5px;font-weight:500;color:#6b6b66;cursor:pointer;white-space:nowrap" style-hover="background:#f4f4f7;color:#1d1d1b">'
     '<span style="width:7px;height:7px;border-radius:999px;background:{{ connDot }};box-shadow:0 0 0 3px {{ connHalo }}"></span>'
-    '{{ connLabel }}</button>')
+    '<span class="bar-label">{{ connLabel }}</span></button>')
+
+# Phone widths, in the web app: the header stays on one line (Copy chat, Export, Canvas and the online badge
+# become icons, a long model name ends in "…"), an answer's seal moves under its buttons when they don't fit
+# beside them, and the sidebar opens as a drawer over the chat, closed by tapping the dimmed chat beside it or
+# choosing a chat. 759px matches NARROW in component.js. Up to 959px the sidebar, when open, is a column that
+# leaves the header too little room for words too, so the buttons are icons then as well. Placed in the design's
+# <helmet> before the colour pass, so its colours get dark-mode values like the rest of the page.
+ICON_ONLY = "{0} .bar-btn{{padding:0!important;aspect-ratio:1;justify-content:center}}{0} .bar-label{{display:none}}"
+PHONE_CSS = (
+    "<style>"
+    ".bar-btn{white-space:nowrap}"
+    ".model-pick{min-width:0}.model-pick>button{max-width:100%}"
+    ".model-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}"
+    "div:has(>.seal){flex-wrap:wrap}"
+    "@media (max-width:959px){" + ICON_ONLY.format(":root:has(aside[data-screen-label=Sidebar])") + "}"
+    "@media (max-width:759px){" + ICON_ONLY.format(":root") +
+    ".model-menu{position:fixed!important;top:54px!important;left:12px!important;width:min(310px,calc(100vw - 24px))!important}"
+    "aside[data-screen-label=Sidebar]{position:fixed;top:0;bottom:0;left:0;z-index:45;width:min(300px,calc(100vw - 48px))!important;"
+    "box-shadow:0 0 48px rgba(20,20,18,.18);animation:drawer-in .24s cubic-bezier(.2,.8,.2,1)}"
+    ".drawer-scrim{display:block!important;position:fixed;inset:0;z-index:44;background:rgba(20,20,18,.32);animation:scrim-in .24s ease-out}"
+    "}"
+    "@keyframes drawer-in{from{transform:translateX(-100%)}}@keyframes scrim-in{from{opacity:0}}"
+    "@media (prefers-reduced-motion:reduce){aside[data-screen-label=Sidebar],.drawer-scrim{animation:none}}"
+    "</style>")
 
 # Beside Copy under each answer: read it aloud with this device's own voices.
 SPEAK = (
@@ -201,7 +225,7 @@ SPEAK = (
     '<rect x="6" y="6" width="12" height="12" rx="2"></rect></svg></sc-if></button>')
 
 # At the end of each answer's actions: where it was written, how long it took, how long it is.
-SEAL = ('<span style="margin-left:8px;display:flex;align-items:center;gap:5px;font-size:12px;color:#8a8a84;'
+SEAL = ('<span class="seal" style="margin-left:8px;display:flex;align-items:center;gap:5px;font-size:12px;color:#8a8a84;'
         'font-variant-numeric:tabular-nums;white-space:nowrap">'
         '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" '
         'stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"></rect>'
@@ -409,12 +433,26 @@ print("  replaced paragraph renderer: paragraphs, headings, lists (bold, code, c
 # share → Copy chat, with Export beside it
 i = tpl.find('<button onClick="{{ share }}"')
 j = match_close(tpl, i, "button")
-share = re.sub(r">(\s*)Share(\s*)<", r">\1Copy chat\2<", tpl[i:j])
+share = re.sub(r">(\s*)Share(\s*)<", r'>\1<span class="bar-label">Copy chat</span>\2<', tpl[i:j])
 if share == tpl[i:j]:
-    share = re.sub(r"(</svg>\s*)Share(\s*)</button>$", r"\1Copy chat\2</button>", tpl[i:j])
+    share = re.sub(r"(</svg>\s*)Share(\s*)</button>$", r'\1<span class="bar-label">Copy chat</span>\2</button>', tpl[i:j])
+share = share.replace('<button onClick="{{ share }}"', '<button onClick="{{ share }}" aria-label="Copy chat" class="bar-btn"', 1)
 tpl = (tpl[:i] + '<div style="display:flex;align-items:center;gap:8px">' + share
        + export_menu("toggleExportChat", "exportChatOpen", "exportChatOptions", 36) + "</div>" + tpl[j:])
 print("  'Share' → 'Copy chat' + Export menu")
+
+# hooks for PHONE_CSS: the header's text buttons can drop their words, the model name can end in "…"
+i = tpl.find('<button onClick="{{ reopenCanvas }}"')
+j = match_close(tpl, i, "button")
+canvas = re.sub(r"(</svg>\s*)Canvas(\s*)</button>$", r'\1<span class="bar-label">Canvas</span>\2</button>', tpl[i:j])
+if canvas == tpl[i:j]:
+    sys.exit("  ✗ Canvas button label not found")
+canvas = canvas.replace('<button onClick="{{ reopenCanvas }}"', '<button onClick="{{ reopenCanvas }}" aria-label="Canvas" class="bar-btn"', 1)
+tpl = tpl[:i] + canvas + tpl[j:]
+tpl = must_replace(tpl, "{{ modelName }}", '<span class="model-name">{{ modelName }}</span>', "model name → one line", count=1)
+tpl = must_replace(tpl, '<div style="position:absolute;top:44px;left:0;width:310px;',
+                   '<div class="model-menu" style="position:absolute;top:44px;left:0;width:310px;', "model menu hook", count=1)
+print("  header hooks for phone widths")
 
 tpl = insert_after_block(tpl, '<button onClick="{{ copyCanvas }}"', "button",
                          export_menu("toggleExportCanvas", "exportCanvasOpen", "exportCanvasOptions", 34),
@@ -423,9 +461,16 @@ tpl = insert_after_block(tpl, '<button onClick="{{ copyCanvas }}"', "button",
 # the online badge, after the model menu in the header
 i = tpl.find('<button onClick="{{ toggleModelMenu }}"')
 i = tpl.rfind('<div style="position:relative">', 0, i)
+tpl = tpl[:i] + '<div class="model-pick" style="position:relative">' + tpl[i + len('<div style="position:relative">'):]
 j = match_close(tpl, i, "div")
 tpl = tpl[:j] + CONNECTION + tpl[j:]
 print("  inserted online/offline badge")
+
+if WEB:
+    tpl = insert_after_block(tpl, '<aside data-screen-label="Sidebar"', "aside",
+                             '<div class="drawer-scrim" onClick="{{ closeSidebar }}" aria-hidden="true" style="display:none"></div>',
+                             "drawer scrim (phone widths)")
+    tpl = must_replace(tpl, "</helmet>", PHONE_CSS + "</helmet>", "phone-width styles", count=1)
 
 # (the answer's own Copy button: the first one in the page belongs to the question)
 i = tpl.find('<button onClick="{{ m.copy }}"', tpl.find('<sc-if value="{{ m.done }}">'))
@@ -490,6 +535,32 @@ if WEB:
 
 # The logo, the keyhole orb (it was a dot on a dark disc until October 2026); ui/_design/logo.svg
 icon = "data:image/svg+xml," + urllib.parse.quote((UI / "_design" / "logo.svg").read_text().strip(), safe="/:='")
+# The web app's page in search and when shared. Its source is a template full of {{ … }} slots
+# that only make sense once the script fills them, so search engines are asked not to list it
+# (the landing page, app/index.html, is the one to find); links from it are still followed.
+# Where the sites live: keep in step with BASE in web/_build/seo.py.
+SITE_URL = "https://yenxu0872-max.github.io/lockedmind/app/"
+WEB_DESC = ("Lockedmind in your browser: chat, write code and make pictures with an AI that runs on your own "
+            "device. Free, no account, and nothing you type leaves your computer.")
+WEB_HEAD = (
+    f'<meta name="description" content="{WEB_DESC}">\n'
+    '<meta name="robots" content="noindex, follow">\n'
+    f'<link rel="canonical" href="{SITE_URL}chat.html">\n'
+    '<link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">\n'
+    '<meta property="og:type" content="website">\n<meta property="og:site_name" content="Lockedmind">\n'
+    '<meta property="og:title" content="Lockedmind — private AI in your browser">\n'
+    f'<meta property="og:description" content="{WEB_DESC}">\n'
+    f'<meta property="og:url" content="{SITE_URL}chat.html">\n'
+    f'<meta property="og:image" content="{SITE_URL}img/og.jpg">\n'
+    '<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">\n'
+    '<meta property="og:image:alt" content="Do you know what happens to your personal data in cloud AI? — Lockedmind">\n'
+    '<meta name="twitter:card" content="summary_large_image">\n')
+NOSCRIPT = ('<noscript><div style="max-width:560px;margin:15vh auto;padding:0 24px;font:16px/1.6 system-ui,sans-serif">'
+            '<h1 style="font-size:26px;margin:0 0 10px">Lockedmind needs JavaScript</h1>'
+            '<p>Lockedmind runs its AI inside your browser, so it needs JavaScript turned on. '
+            'Nothing you type is ever sent anywhere.</p>'
+            '<p><a href="./">What Lockedmind is</a> · <a href="../models.html">Browse AI models</a></p></div></noscript>')
+
 # theme applied before first paint, so a dark-mode user never sees a white flash
 early_theme = ("<script>try{var t=localStorage.getItem('oriel-theme');"
                "if(t==='Dark')document.documentElement.dataset.theme='dark';"
@@ -507,9 +578,15 @@ tpl = must_replace(
     f'<title>{"Lockedmind — private AI in your browser" if WEB else "Lockedmind"}</title>\n'
     f'<link rel="icon" href="{icon}">\n'
     f'{early_theme}\n{theme_css}\n{"" if WEB else app_css}\n'
-    + (f'<script>window.ORIEL_WEB = {WEB_CONFIG};</script>\n' + '<link rel="manifest" href="manifest.webmanifest">\n<meta name="theme-color" content="#17171a">\n<link rel="apple-touch-icon" href="img/apple-touch-icon.png">\n<script>if(\'serviceWorker\' in navigator)addEventListener(\'load\',()=>navigator.serviceWorker.register(\'sw.js\').catch(()=>{}));</script>\n' if WEB else '') +
+    + (WEB_HEAD + f'<script>window.ORIEL_WEB = {WEB_CONFIG};</script>\n' + '<link rel="manifest" href="manifest.webmanifest">\n<meta name="theme-color" content="#17171a">\n<link rel="apple-touch-icon" href="img/apple-touch-icon.png">\n<script>if(\'serviceWorker\' in navigator)addEventListener(\'load\',()=>navigator.serviceWorker.register(\'sw.js\').catch(()=>{}));</script>\n' if WEB else '') +
     '<script src="./vendor/highlight.min.js"></script>',
     "title, favicon, theme, highlight.js", count=1)
+
+if WEB:
+    tpl, k = re.subn(r"(<body[^>]*>)", lambda m: m.group(1) + NOSCRIPT, tpl, count=1)
+    if not k:
+        sys.exit("  ✗ <body> not found for the noscript message")
+    print("  inserted message for browsers without JavaScript")
 
 logic = (HERE / "component.js").read_text()
 props = html.escape('{"thinkDefault":{"editor":"boolean","default":false,"tsType":"boolean"}}', quote=True)
@@ -517,7 +594,8 @@ out = tpl.replace("\x00LOGIC\x00",
                   f'<script type="text/x-dc" data-dc-script data-props="{props}">{logic}</script>')
 
 # ------------------------------------------------------------------- checks
-remote = re.findall(r'(?:src|href)="(https?://[^"]+)"', out)
+# (a canonical link only names the page's own address; nothing is loaded from it)
+remote = re.findall(r'(?:src|href)="(https?://[^"]+)"', re.sub(r'<link rel="canonical"[^>]*>', "", out))
 if remote:
     sys.exit(f"  ✗ remote resources still referenced: {remote}")
 for gone in ("pickResearch", "Free plan") + (() if WEB else ("pickImage",)):
@@ -534,7 +612,10 @@ if WEB:
     # the runtime files the page loads, next to it
     (SITE / "vendor").mkdir(exist_ok=True)
     shutil.copy2(UI / "support.js", SITE / "support.js")
+    # Babel (3 MB) is only loaded for .jsx imports, and the web app has none: not shipped there.
     for f in (UI / "vendor").iterdir():
-        shutil.copy2(f, SITE / "vendor" / f.name)
+        if f.name != "babel.min.js":
+            shutil.copy2(f, SITE / "vendor" / f.name)
+    (SITE / "vendor" / "babel.min.js").unlink(missing_ok=True)
 print(f"\n  wrote {OUT.relative_to(UI.parent)} — {len(out):,} bytes, no remote resources"
       + (f" · {len(left)} colours outside style attributes" if left else ""))

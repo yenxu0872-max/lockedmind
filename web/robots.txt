@@ -1,0 +1,7 @@
+# Lockedmind: search engines and AI crawlers are all welcome.
+# (Crawlers only read this file at the root of a domain, so it takes effect once
+# the sites have their own domain; until then, submit the sitemap directly.)
+User-agent: *
+Allow: /
+
+Sitemap: https://yenxu0872-max.github.io/lockedmind/sitemap.xml

@@ -651,3 +651,6 @@ html:not(.js) .badge,.still .badge,html:not(.js) .pips,.still .pips{display:none
 html:not(.js) .gets,.still .gets{min-height:0}
 html:not(.js) .get,.still .get{position:relative;margin-bottom:28px}
 html:not(.js) .lit span,.still .lit span{color:var(--day-text)}
+
+/* links between pages (written by web/_build/seo.py) */
+footer .foot-links a{color:var(--day-text);font-weight:500}

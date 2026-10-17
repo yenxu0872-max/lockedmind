@@ -221,6 +221,19 @@ Live on GitHub Pages — published by `.github/workflows/pages.yml` on every pus
 - **Lockedmind Models** — <https://yenxu0872-max.github.io/lockedmind/>
 - **Lockedmind**, the app — <https://yenxu0872-max.github.io/lockedmind/app/>
 
+**Search, sharing and crawlers:** `python3 web/_build/seo.py` writes each page's canonical address,
+share cards (`og.jpg` for Lockedmind Models, `app/img/og.jpg` for the app), favicons and structured data
+(JSON-LD, with every FAQ answer copied word for word from the page), the breadcrumbs and links between
+pages, a plain list of popular models in `models.html` for crawlers without JavaScript, and `robots.txt`,
+`sitemap.xml`, `llms.txt` and the `404.html` page. `--check` verifies without writing; the catalogue
+build runs it. The web app (`app/chat.html`) is a template until its script runs, so it asks search
+engines not to list it and shows a message to browsers without JavaScript (`ui/_build/build.py`).
+
+**A custom domain** (lockedmind.com is free as of October 2026 and needs buying): add it under the repo's
+Settings › Pages, point its DNS at GitHub Pages, then change `BASE` in `web/_build/seo.py` and `SITE_URL`
+in `ui/_build/build.py`, run both, and push. `robots.txt` only takes effect at a domain's root, so it starts
+working then; until then, submit `sitemap.xml` in Google Search Console.
+
 Two products, one static site:
 
 **Lockedmind Models** — the model finder, for people starting out: every AI model worth trying from the

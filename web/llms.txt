@@ -1,0 +1,19 @@
+# Lockedmind
+
+> Lockedmind is private AI that runs on your own device. The Lockedmind app chats, writes code and makes pictures inside your web browser, on your own computer: nothing you type is sent to a server, it needs no account, and it is free. Lockedmind Models is a guide to AI models you can download and run yourself, in plain words.
+
+Lockedmind isn't affiliated with any AI company or model maker. Models download straight from where their makers publish them (Hugging Face, Ollama or LM Studio), never through Lockedmind.
+
+## Lockedmind
+- [Lockedmind](https://yenxu0872-max.github.io/lockedmind/app/): what happens to your data in cloud AI, with cited sources, and how on-device AI avoids it
+- [Open Lockedmind in your browser](https://yenxu0872-max.github.io/lockedmind/app/chat.html): the app itself; it downloads a model once, then works offline
+- [Privacy policy](https://yenxu0872-max.github.io/lockedmind/app/privacy.html): for Lockedmind for iPhone, which is not yet on the App Store
+- [Support](https://yenxu0872-max.github.io/lockedmind/app/support.html): for Lockedmind for iPhone
+
+## Lockedmind Models
+- [Lockedmind Models](https://yenxu0872-max.github.io/lockedmind/): AI models you can run yourself, and how to get started
+- [Browse models](https://yenxu0872-max.github.io/lockedmind/models.html): search by name or use, filter by what fits your computer and who made it; each model shows its licence in plain words
+- [Model catalogue (JSON)](https://yenxu0872-max.github.io/lockedmind/catalog.json): every model listed, with its maker, size, licence and where to download it
+
+## Optional
+- [Source code](https://github.com/yenxu0872-max/lockedmind): the websites and apps

@@ -16,9 +16,12 @@ The same model is usually in several places under different names
 and size, so each model appears once with all the ways to get it.
 """
 import json
+import subprocess
+import sys
 import math
 import re
 from collections import defaultdict
+import datetime
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -513,7 +516,7 @@ def main():
             if (WEB / rel).exists():
                 return rel
         return None
-    doc = {"v": 2, "built": CUTOFF, "cutoff": CUTOFF,
+    doc = {"v": 2, "built": datetime.date.today().isoformat(), "cutoff": CUTOFF,
            "makers": {o: {k: v for k, v in {"name": maker_of(o), "n": n, "lab": o in LABS, "logo": logo(o)}.items() if v}
                       for o, n in sorted(makers.items(), key=lambda x: -x[1])},
            "models": models}
@@ -527,6 +530,8 @@ def main():
     print("with a file to download:", sum(1 for e in models if e.get("gguf", {}).get("file")),
           "| in Ollama:", sum(1 for e in models if "ollama" in e), "| in LM Studio:", sum(1 for e in models if "lms" in e),
           "| in Lockedmind:", sum(1 for e in models if "oriel" in e))
+    # the plain list of popular models in models.html, the sitemap and the rest follow the new catalogue
+    subprocess.run([sys.executable, str(Path(__file__).with_name("seo.py"))], check=True)
 
 
 if __name__ == "__main__":

@@ -151,6 +151,9 @@ const LS_LEGACY = 'oriel.v3';    // where chats lived before the server stored t
 const LS_THEME = 'oriel-theme';  // mirrored locally so the theme applies before load
 const LS_WEB = 'oriel.web';      // the web version's chats and settings
 const DAY = 864e5;
+// Phone widths in the web app: the sidebar is a drawer over the chat (PHONE_CSS in build.py, same 759px).
+const NARROW = WEB ? window.matchMedia('(max-width: 759px)') : null;
+const isNarrow = () => !!NARROW?.matches;
 
 const fmtSize = b => b > 1e6 ? (b / 1e6).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1e3)) + ' KB';
 const gbText = g => g >= 1 ? g.toFixed(1) + ' GB' : Math.round(g * 1000) + ' MB';
@@ -759,7 +762,7 @@ class Component extends DCLogic {
     this.rev = 0;
     this.deleted = {};
     this.setState({ chats: (saved?.chats || []).map(hydrate), loaded: true, ...this.settingsFrom(s), models, modelId, have: {},
-                    sidebarOpen: window.innerWidth >= 760, ...(prompt ? { input: prompt, activeId: null } : {}) }, async () => {
+                    sidebarOpen: !isNarrow(), ...(prompt ? { input: prompt, activeId: null } : {}) }, async () => {
       applyTheme(this.state.theme);
       this.lastSaved = JSON.stringify(this.snapshot());
       if (wanted || prompt) history.replaceState(null, '', location.pathname);
@@ -1617,7 +1620,7 @@ class Component extends DCLogic {
         const active = c.id === s.activeId, renaming = s.renamingId === c.id;
         return {
           title: c.title, renaming, showActive: active && !renaming, showInactive: !active && !renaming,
-          open: () => !s.busy && this.setState({ activeId: c.id, canvas: null, chatMenu: null }),
+          open: () => !s.busy && this.setState({ activeId: c.id, canvas: null, chatMenu: null, ...(isNarrow() ? { sidebarOpen: false } : {}) }),
           menuOpen: s.chatMenu === c.id,
           toggleMenu: () => this.setState({ chatMenu: s.chatMenu === c.id ? null : c.id }),
           pinLabel: c.pinned ? 'Unpin' : 'Pin',
@@ -1647,7 +1650,8 @@ class Component extends DCLogic {
     return {
       sidebarOpen: s.sidebarOpen, sidebarClosed: !s.sidebarOpen,
       toggleSidebar: () => this.setState({ sidebarOpen: !s.sidebarOpen }),
-      newChat: () => !s.busy && this.setState({ activeId: null, input: '', canvas: null }),
+      closeSidebar: () => this.setState({ sidebarOpen: false }),
+      newChat: () => !s.busy && this.setState({ activeId: null, input: '', canvas: null, ...(isNarrow() ? { sidebarOpen: false } : {}) }),
       search: s.search, onSearch: e => this.setState({ search: e.target.value }),
       groups, noResults: !!q && groups.length === 0,
       renameVal: s.renameVal, onRename: e => this.setState({ renameVal: e.target.value }),
