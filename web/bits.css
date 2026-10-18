@@ -1,0 +1,37 @@
+/* Lockedmind's motion bits (bits.js): ports of React Bits effects. Colours follow each site's own
+   variables where it has them (--accent-text on Lockedmind Models, --violet on the app page). */
+
+/* SplitText: hidden until split, so the words don't flash in place first. html.bits is set by a
+   one-line script in the page's head, only when motion is welcome; if bits.js never runs, the
+   text shows anyway after 2.5 s. */
+.bits [data-split]{visibility:hidden;animation:bits-failsafe 0s 2.5s forwards}
+@keyframes bits-failsafe{to{visibility:visible}}
+
+/* ShinyText: a band of the brand's violet sweeps across, then rests. */
+.shiny{background:linear-gradient(110deg,currentColor 0 44%,var(--shine,#8b5cf6) 50%,currentColor 56% 100%);
+  background-size:300% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  animation:bits-shine 6s ease-in-out infinite}
+@keyframes bits-shine{0%{background-position:100% 0}55%,100%{background-position:0% 0}}
+
+/* SpotlightCard: a soft light under the pointer, behind the card's content. */
+[data-spotlight]{position:relative;isolation:isolate}
+[data-spotlight]::before{content:"";position:absolute;inset:0;border-radius:inherit;z-index:-1;pointer-events:none;opacity:0;
+  background:radial-gradient(280px circle at var(--mx,50%) var(--my,50%),var(--spot,rgba(139,92,246,.13)),transparent 70%);
+  transition:opacity .35s ease}
+[data-spotlight]:hover::before{opacity:1}
+
+/* LogoLoop: one row that slides left forever, faded at both ends, paused under the pointer. */
+[data-loop].looping{display:block;overflow:hidden;padding:4px 0;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent);mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent)}
+.loop-track{display:flex;gap:10px;width:max-content;animation:bits-loop var(--loop-time,40s) linear infinite}
+[data-loop].looping:hover .loop-track,[data-loop].looping:focus-within .loop-track{animation-play-state:paused}
+@keyframes bits-loop{to{transform:translateX(calc(-50% - 5px))}}   /* half the strip plus half a gap: seamless */
+
+/* FuzzyText: the canvas takes the place of the text, at the same size. */
+[data-fuzzy]:has(canvas){display:grid;place-items:center}
+[data-fuzzy] canvas{display:block;max-width:100%;height:auto}
+
+@media (prefers-reduced-motion:reduce){
+  .shiny{animation:none;background:none;-webkit-text-fill-color:currentColor}
+  .loop-track{animation:none}
+}

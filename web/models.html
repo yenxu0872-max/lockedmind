@@ -9,6 +9,8 @@
 <script>try{var t=localStorage.getItem('oriel-theme');if(t==='Dark')document.documentElement.dataset.theme='dark';else if(t==='Light')document.documentElement.dataset.theme='light';}catch(e){}</script>
 <link rel="preload" href="fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="site.css?v=202610171500">
+<link rel="stylesheet" href="bits.css?v=1">
+<script>if(!matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.classList.add('bits')</script>
 <!-- seo: written by web/_build/seo.py -->
 <link rel="canonical" href="https://yenxu0872-max.github.io/lockedmind/models.html">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
@@ -47,7 +49,7 @@
     <div class="glow" aria-hidden="true"></div>
     <div class="hero-inner">
       <!-- crumbs --><nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="./">Lockedmind Models</a></li><li aria-current="page">Browse models</li></ol></nav><!-- /crumbs -->
-<h1>Find any AI model</h1>
+<h1 data-split="chars" data-split-on="load" data-delay="30">Find any AI model</h1>
       <p class="lede">Every model worth trying from the past year — and everything in Ollama and LM Studio — explained simply. Download it, or open it in Lockedmind. <b>Nothing you type ever leaves your device.</b></p>
       <form class="searchbar" id="searchForm" role="search">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -109,5 +111,8 @@
 <dialog id="sheet" aria-labelledby="sheetTitle"><div class="sheet" id="sheetInner"></div></dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script src="site.js?v=202610120800"></script>
+<script src="vendor/gsap/gsap.min.js" defer></script>
+<script src="vendor/gsap/SplitText.min.js" defer></script>
+<script src="bits.js?v=1" defer></script>
 </body>
 </html>

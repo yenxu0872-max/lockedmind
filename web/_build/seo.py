@@ -238,6 +238,7 @@ NOT_FOUND = f"""<!doctype html>
 <meta name="description" content="This page doesn't exist. Find your way to Lockedmind or Lockedmind Models.">
 <meta name="robots" content="noindex">
 <link rel="icon" type="image/png" sizes="32x32" href="{BASE}favicon-32.png">
+<link rel="stylesheet" href="{BASE}bits.css?v=1">
 <style>
 @font-face{{font-family:'Geist';src:url('{BASE}fonts/Geist-Variable.woff2') format('woff2');font-weight:100 900;font-display:swap}}
 :root{{--bg:#fff;--text:#1d1d1f;--muted:#6e6e73;--line:#e5e5ea;--card:#f5f5f7;--link:#5b3fd9;color-scheme:light dark}}
@@ -245,7 +246,7 @@ NOT_FOUND = f"""<!doctype html>
 *{{box-sizing:border-box}}
 body{{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg);color:var(--text);font:17px/1.6 'Geist',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;padding:32px 20px}}
 main{{max-width:520px;text-align:center}}
-.mark{{width:72px;height:72px;border-radius:999px;margin:0 auto 28px;box-shadow:0 8px 30px rgba(124,88,230,.35)}}
+.fuzzy{{font:800 clamp(110px,24vw,190px)/1 'Geist',system-ui,sans-serif;letter-spacing:-.04em;color:var(--text);margin:0 auto 18px}}
 h1{{font-size:clamp(30px,6vw,40px);line-height:1.1;letter-spacing:-.025em;margin:0 0 12px;font-weight:650}}
 p{{color:var(--muted);margin:0 0 28px}}
 nav{{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}}
@@ -255,7 +256,7 @@ nav a:first-child{{background:linear-gradient(120deg,#ac77fa,#00aee9);border-col
 </head>
 <body>
 <main>
-  <img class="mark" src="{BASE}app/img/icon-192.png" alt="" width="72" height="72">
+  <div class="fuzzy" data-fuzzy aria-hidden="true">404</div>
   <h1>This page isn't here</h1>
   <p>The address may be mistyped, or the page has moved. These will get you back on track.</p>
   <nav aria-label="Where to go">
@@ -265,6 +266,7 @@ nav a:first-child{{background:linear-gradient(120deg,#ac77fa,#00aee9);border-col
     <a href="{BASE}models.html">Browse models</a>
   </nav>
 </main>
+<script src="{BASE}bits.js?v=1" defer></script>
 </body>
 </html>
 """
@@ -318,6 +320,9 @@ def main():
     stale |= write("sitemap.xml", sitemap())
     stale |= write("llms.txt", LLMS)
     stale |= write("404.html", NOT_FOUND)
+    # the app keeps its own copy of the motion bits (the sites can be published apart)
+    for name in ("bits.js", "bits.css"):
+        stale |= write("app/" + name, (WEB / name).read_text())
     if CHECK and stale:
         sys.exit(1)
     if not stale:

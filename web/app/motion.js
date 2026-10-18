@@ -289,7 +289,11 @@
     rail.innerHTML = chapters.map((c, i) => `<button type="button" data-i="${i}"><span>${c.dataset.chapter}</span><i aria-hidden="true"></i></button>`).join('');
     rail.addEventListener('click', e => {
       const b = e.target.closest('button');
-      if (b) scrollTo({ top: chapters[+b.dataset.i].getBoundingClientRect().top + scrollY + 2, behavior: moving ? 'smooth' : 'auto' });
+      if (b) {
+        const top = chapters[+b.dataset.i].getBoundingClientRect().top + scrollY + 2;
+        if (window.lenis) window.lenis.scrollTo(top, { immediate: !moving });
+        else scrollTo({ top, behavior: moving ? 'smooth' : 'auto' });
+      }
     });
   }
   const railButtons = rail ? [...rail.children] : [];

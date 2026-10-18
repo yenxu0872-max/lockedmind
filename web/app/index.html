@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-smooth>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,6 +9,7 @@
 <script>document.documentElement.classList.add(matchMedia('(prefers-reduced-motion: reduce)').matches ? 'still' : 'js')</script>
 <link rel="preload" href="fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="app.css?v=13">
+<link rel="stylesheet" href="vendor/lenis/lenis.css">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#ffffff">
 <script>if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>
@@ -423,7 +424,7 @@
         <div class="ck-l">
           <h3>Will it run on my computer?</h3>
           <p>Find out in a second. The check runs in this page — nothing is sent.</p>
-          <button class="btn btn-glow" type="button" id="check-run">Check my computer</button>
+          <button class="btn btn-glow" type="button" id="check-run" data-magnet>Check my computer</button>
         </div>
         <ul class="ck-r" aria-live="polite">
           <li data-k="gpu"><i class="dot"></i><span>Graphics</span><b>Not checked yet</b></li>
@@ -486,10 +487,10 @@
       <div class="ob" data-reveal="0.36" style="--x:74%;--y:76%;--xs:24%;--ys:86%;--fx:30vw;--fy:12vh;--r:-4deg"><span><svg class="i"><use href="#i-lock"/></svg>How do I tell my boss I’m pregnant?</span></div>
     </div>
     <div class="in" data-reveal>
-      <h2>Take your AI back.</h2>
+      <h2 data-decrypt>Take your AI back.</h2>
       <p>Chat, code and pictures — private, free, and yours.</p>
       <div class="row">
-        <a class="btn btn-lg btn-glow" href="chat.html">Open Lockedmind — it’s free</a>
+        <a class="btn btn-lg btn-glow" href="chat.html" data-magnet>Open Lockedmind — it’s free</a>
         <a class="btn btn-lg btn-line" href="../models.html">Download models<svg class="i"><use href="#i-download"/></svg></a>
       </div>
       <p class="fine">Runs in Chrome, Edge and Safari 26 · a one-time download · nothing to install</p>
@@ -530,6 +531,8 @@
     </div>
   </div>
 </footer>
-<script src="motion.js?v=7"></script>
+<script src="motion.js?v=8"></script>
+<script src="vendor/lenis/lenis.min.js" defer></script>
+<script src="bits.js?v=1" defer></script>
 </body>
 </html>
